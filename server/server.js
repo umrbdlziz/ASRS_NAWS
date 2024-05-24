@@ -1,6 +1,8 @@
 const express = require("express");
+const cors = require("cors");
 const path = require("path");
 const app = express();
+const passport = require("./auth/passport-config");
 require("dotenv").config();
 
 const port = process.env.PORT;
@@ -10,33 +12,42 @@ if (!port) {
 }
 
 const db = require("./models/createdb");
+const db_run = require("./models/connectdb");
 
 const session = require("express-session");
 const MemoryStore = require("memorystore")(session);
-const passport = require("passport");
+// const passport = require("passport");
 // const initializePassport = require("./auth/passport-config");
 // initializePassport(
 //   passport,
 //   (username) =>
-//     db.executeGetSQL("select * from user where username = ?", [username]),
-//   (id) => db.executeGetSQL("select * from user where id = ?", [id])
+//     db_run.executeGetSQL("select * from user where username = ?", [username]),
+//   (id) => db_run.executeGetSQL("select * from user where id = ?", [id])
 // );
 
-// app.use(
-//   session({
-//     secret: process.env.SECRET_KEY,
-//     resave: false,
-//     saveUninitialized: false,
-//     store: new MemoryStore({
-//       checkPeriod: 86400000, // prune expired entries every 24h
-//     }),
-//     cookie: {
-//       maxAge: 86400000, // Session duration in milliseconds (24h)
-//     },
-//   })
-// );
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(
+  session({
+    secret: process.env.SECRET_KEY,
+    resave: false,
+    saveUninitialized: false,
+    store: new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
+    cookie: {
+      maxAge: 86400000, // Session duration in milliseconds (24h)
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Change this to your Vite development server port
+    credentials: true,
+  })
+);
 
 // close database when server is shut down
 process.on("SIGINT", () => {
@@ -51,6 +62,27 @@ process.on("SIGINT", () => {
       console.log("Database connection closed.");
       process.exit();
     }
+  });
+});
+
+// Routes
+app.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+    if (!user) return res.status(401).json({ message: "Login failed" });
+    req.login(user, (err) => {
+      if (err) return next(err);
+      return res.json({ message: "Login successful" });
+    });
+  })(req, res, next);
+});
+
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.send("Logged out");
   });
 });
 
