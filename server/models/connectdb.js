@@ -1,29 +1,26 @@
-const mysql = require("mysql2");
-const md5 = require("md5");
+const sqlite3 = require("sqlite3").verbose();
 
-// Create a connection pool
-const con = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10, // Adjust as needed
-  queueLimit: 0,
+const DBSOURCE = process.env.DB_NAME;
+
+let db = new sqlite3.Database(DBSOURCE, (err) => {
+  if (err) {
+    // Cannot open database
+    console.error(err.message);
+    throw err;
+  }
 });
 
 // run query
 function executeRunSQL(sql, params) {
   return new Promise((resolve, reject) => {
-    con.query(sql, params, (err, result) => {
+    db.run(sql, params, function (err) {
       if (err) {
         reject(err);
-      } else {
-        resolve({
-          changes: result.affectedRows,
-          lastID: result.insertId,
-        });
       }
+      resolve({
+        changes: this.changes,
+        lastID: this.lastID,
+      });
     });
   });
 }
@@ -31,11 +28,11 @@ function executeRunSQL(sql, params) {
 // return all row
 function executeAllSQL(sql, params) {
   return new Promise((resolve, reject) => {
-    con.query(sql, params, (err, rows) => {
+    db.all(sql, params, (err, result) => {
       if (err) {
         reject(err);
       } else {
-        resolve(rows);
+        resolve(result);
       }
     });
   });
@@ -44,24 +41,18 @@ function executeAllSQL(sql, params) {
 // return one row only
 function executeGetSQL(sql, params) {
   return new Promise((resolve, reject) => {
-    con.query(sql, params, (err, rows) => {
+    db.get(sql, params, (err, result) => {
       if (err) {
         reject(err);
       } else {
-        resolve(rows[0] || null); // Return the first row or null
+        resolve(result);
       }
     });
   });
-}
-
-function createdb() {
-  console.log("Creating Tables");
-  // create tables
 }
 
 module.exports = {
   executeRunSQL,
   executeAllSQL,
   executeGetSQL,
-  createdb,
 };
