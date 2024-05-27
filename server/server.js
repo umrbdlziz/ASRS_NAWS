@@ -79,7 +79,10 @@ app.get("/checkAuth", (req, res) => {
 });
 
 const users_api = require("./API/user");
+const retrieve_api = require("./API/retrieve");
+
 app.use("/user", users_api);
+app.use("/retrieve", retrieve_api);
 
 // Close database when server is shut down
 process.on("SIGINT", () => {

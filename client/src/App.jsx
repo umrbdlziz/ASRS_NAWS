@@ -5,7 +5,13 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import { LoginPage, HomePage, UserPage } from "./pages";
+import {
+  LoginPage,
+  HomePage,
+  UserPage,
+  InventoryPage,
+  OrderListPage,
+} from "./pages";
 import { checkAuth } from "./components/authService";
 import { AuthContext } from "./context";
 import TopBar from "./components/TopBar"; // Import your TopBar component
@@ -43,14 +49,26 @@ const App = () => {
             element={isAuthenticated ? <Navigate to="/home" /> : <LoginPage />}
           />
           <Route
-            path="/home"
+            path="/"
             element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
           />
           <Route
             path="/user"
             element={isAuthenticated ? <UserPage /> : <Navigate to="/login" />}
           />
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route
+            path="/inventory"
+            element={
+              isAuthenticated ? <InventoryPage /> : <Navigate to="/login" />
+            }
+          />
+          <Route
+            path="/order_list"
+            element={
+              isAuthenticated ? <OrderListPage /> : <Navigate to="/login" />
+            }
+          />
+          {/* <Route path="/" element={<Navigate to="/login" />} /> */}
         </Routes>
       </Router>
     </AuthContext.Provider>

@@ -16,10 +16,10 @@ import {
   MenuItem, // Import MenuItem for the select input
   IconButton,
   DialogContentText,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
 import axios from "axios";
 
 const SERVER_URL = "http://192.168.1.48:5001";
@@ -33,7 +33,7 @@ const UserPage = () => {
   const [newUser, setNewUser] = useState({
     username: "",
     password: "",
-    role: "admin", // Set default role to admin
+    role: "operator", // Set default role to admin
   });
   const [users, setUsers] = useState([]);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -63,7 +63,7 @@ const UserPage = () => {
 
   const handleCloseNewUser = () => {
     setOpenNewUser(false);
-    setNewUser({ username: "", password: "", role: "admin" }); // Reset role to admin
+    setNewUser({ username: "", password: "", role: "operator" }); // Reset role to admin
   };
 
   const handleInputChange = (e) => {
@@ -78,9 +78,8 @@ const UserPage = () => {
         role: newUser.role,
       });
       console.log(response.data.message);
-      setAlertOpen(true); // Show alert when user is created
+      setAlertOpen(true);
       handleCloseNewUser();
-      // Refresh users after new user is created
       fetchUsers();
     } catch (error) {
       console.error("Failed to add user:", error);
@@ -147,13 +146,11 @@ const UserPage = () => {
   }, []);
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <div style={{ height: "100%", width: "100%" }}>
       <Button variant="contained" color="primary" onClick={handleAddUser}>
         Add User
       </Button>
       <DataGrid
-        autoHeight={false}
-        sx={{ height: "85vh" }}
         rows={users}
         columns={columns}
         pageSize={5}

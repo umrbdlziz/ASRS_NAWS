@@ -24,7 +24,7 @@ const LoginForm = () => {
     try {
       const response = await login(username, password);
       if (response.success) {
-        navigate("/home");
+        navigate("/");
         setIsAuthenticated(true);
       } else {
         console.log(response.message); // Log the message

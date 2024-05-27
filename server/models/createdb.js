@@ -83,6 +83,52 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         }
       }
     );
+    db.run(
+      `CREATE TABLE "retrieve" (
+        "id"  INTEGER PRIMARY KEY AUTOINCREMENT,
+        "customer" TEXT NOT NULL,
+        "so_no"  TEXT NOT NULL,
+        "date"	DATETIME NOT NULL,
+        "item_code"	TEXT NOT NULL,
+        "item_desc"	TEXT NOT NULL,
+        "item_quantity"	INTEGER NOT NULL,
+        "uom"	TEXT NOT NULL,
+        "datetime_retrieve" DATETIME,
+        "user_id" INTEGER,
+        "status" BOOLEAN NOT NULL
+      );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("retrieve table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "store" (
+        "id"  INTEGER PRIMARY KEY AUTOINCREMENT,
+        "customer" TEXT NOT NULL,
+        "no"  TEXT NOT NULL,
+        "date"	DATETIME NOT NULL,
+        "item_code"	TEXT NOT NULL,
+        "item_desc"	TEXT NOT NULL,
+        "item_quantity"	INTEGER NOT NULL,
+        "uom"	TEXT NOT NULL,
+        "datetime_store" DATETIME,
+        "user_id" INTEGER,
+        "status" BOOLEAN NOT NULL
+      );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("store table has been created");
+        }
+      }
+    );
   }
 });
 

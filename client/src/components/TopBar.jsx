@@ -115,33 +115,39 @@ const TopBar = () => {
           <List>
             <ListItem button onClick={() => navigate("/")}>
               <ListItemIcon>
-                <HomeIcon />
+                <HomeIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Home Page" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/store")}>
+            <ListItem button onClick={() => navigate("/retrieve")}>
               <ListItemIcon>
-                <StoreIcon />
+                <StoreIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Retrieve" />
             </ListItem>
             <ListItem button onClick={() => navigate("/live-map")}>
               <ListItemIcon>
-                <MapIcon />
+                <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Live Map" />
             </ListItem>
             <ListItem button onClick={() => navigate("/inventory_list")}>
               <ListItemIcon>
-                <MapIcon />
+                <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Inventory list" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/order_store_list")}>
+            <ListItem button onClick={() => navigate("/order_list")}>
               <ListItemIcon>
-                <MapIcon />
+                <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
-              <ListItemText primary="Order/store list" />
+              <ListItemText primary="Order list" />
+            </ListItem>
+            <ListItem button onClick={() => navigate("/store_list")}>
+              <ListItemIcon>
+                <MapIcon style={{ color: "#EFF1ED" }} />
+              </ListItemIcon>
+              <ListItemText primary="Store list" />
             </ListItem>
           </List>
           <Divider />
