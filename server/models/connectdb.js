@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 
-const DBSOURCE = process.env.DB_NAME;
+// const DBSOURCE = process.env.DB_NAME;
+const DBSOURCE = "asrs_db.sqlite3";
 
 let db = new sqlite3.Database(DBSOURCE, (err) => {
   if (err) {

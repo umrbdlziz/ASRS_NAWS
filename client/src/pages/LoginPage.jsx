@@ -1,25 +1,40 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, Typography, Container, Box } from "@mui/material";
-
+import {
+  TextField,
+  Button,
+  Typography,
+  Container,
+  Box,
+  Alert,
+} from "@mui/material";
 import { login } from "../components/authService";
+import { AuthContext } from "../context";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [alertType, setAlertType] = useState(""); // success or error
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await login(username, password);
-      setMessage(data.message);
-      if (data.message === "Login successful") {
+      const response = await login(username, password);
+      if (response.success) {
         navigate("/home");
+        setIsAuthenticated(true);
+      } else {
+        console.log(response.message); // Log the message
+        setMessage(response.message.toString());
+        setAlertType("error");
       }
     } catch (error) {
-      setMessage("Login failed");
+      console.log(error); // Log any network errors
+      setMessage(error);
+      setAlertType("error");
     }
   };
 
@@ -36,22 +51,19 @@ const LoginForm = () => {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
-            variant="outlined"
             margin="normal"
             required
             fullWidth
-            id="username"
+            id="text"
             label="Username"
-            name="username"
-            autoComplete="username"
+            name="text"
+            autoComplete="text"
             autoFocus
-            value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <TextField
-            variant="outlined"
             margin="normal"
             required
             fullWidth
@@ -60,22 +72,20 @@ const LoginForm = () => {
             type="password"
             id="password"
             autoComplete="current-password"
-            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            color="primary"
             sx={{ mt: 3, mb: 2 }}
           >
             Sign In
           </Button>
           {message && (
-            <Typography color="error" variant="body2">
+            <Alert severity={alertType} sx={{ width: "100%", mt: 2 }}>
               {message}
-            </Typography>
+            </Alert>
           )}
         </Box>
       </Box>

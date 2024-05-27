@@ -4,6 +4,7 @@ const path = require("path");
 const app = express();
 const passport = require("./auth/passport-config");
 require("dotenv").config();
+require("events").EventEmitter.defaultMaxListeners = 20;
 
 const port = process.env.PORT;
 if (!port) {
@@ -12,18 +13,9 @@ if (!port) {
 }
 
 const db = require("./models/createdb");
-const db_run = require("./models/connectdb");
 
 const session = require("express-session");
 const MemoryStore = require("memorystore")(session);
-// const passport = require("passport");
-// const initializePassport = require("./auth/passport-config");
-// initializePassport(
-//   passport,
-//   (username) =>
-//     db_run.executeGetSQL("select * from user where username = ?", [username]),
-//   (id) => db_run.executeGetSQL("select * from user where id = ?", [id])
-// );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -40,16 +32,56 @@ app.use(
     },
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(
   cors({
-    origin: "http://localhost:5173", // Change this to your Vite development server port
+    origin: "http://192.168.1.48:5173", // Change this to your Vite development server port
     credentials: true,
   })
 );
 
-// close database when server is shut down
+// Routes
+app.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      // If authentication failed, `info` should contain the message
+      return res.status(401).send({ success: false, message: info.message });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.send({ success: true });
+    });
+  })(req, res, next);
+});
+
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.send({ success: true });
+  });
+});
+
+app.get("/checkAuth", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.send({ authenticated: true });
+  } else {
+    res.send({ authenticated: false });
+  }
+});
+
+const users_api = require("./API/user");
+app.use("/user", users_api);
+
+// Close database when server is shut down
 process.on("SIGINT", () => {
   console.log("Server is shutting down...");
 
@@ -65,30 +97,17 @@ process.on("SIGINT", () => {
   });
 });
 
-// Routes
-app.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).json({ message: "Login failed" });
-    req.login(user, (err) => {
-      if (err) return next(err);
-      return res.json({ message: "Login successful" });
-    });
-  })(req, res, next);
+app.get("/", (req, res) => {
+  res.send("Hello, welcome to my server!");
 });
 
-app.get("/logout", (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return next(err);
-    }
-    res.send("Logged out");
-  });
-});
-
-// any that are not found / default
+// Any that are not found / default
 app.use(function (req, res) {
   res.sendStatus(404);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
 
 // for production after running $npm run build in client folder
@@ -99,7 +118,3 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "client", "dist", "index.html"));
 });
 */
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
