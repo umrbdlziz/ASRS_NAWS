@@ -25,4 +25,16 @@ app.post("/add_user", async (req, res) => {
   }
 });
 
+app.delete("/delete_user/:id", async (req, res) => {
+  const { id } = req.params;
+  const sql = "DELETE FROM user WHERE id = ?";
+  try {
+    await db.executeAllSQL(sql, [id]);
+    res.status(200).send({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    res.status(500).send({ message: "Failed to delete user" });
+  }
+});
+
 module.exports = app;
