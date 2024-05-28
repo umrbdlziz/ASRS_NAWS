@@ -199,6 +199,21 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         }
       }
     );
+    db.run(
+      `CREATE TABLE "item" (
+        "item_code" TEXT NOT NULL PRIMARY KEY,
+        "item_desc" TEXT,
+        "item_img" TEXT
+      );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("item table has been created");
+        }
+      }
+    );
   }
 });
 

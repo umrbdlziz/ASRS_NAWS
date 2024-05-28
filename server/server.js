@@ -25,14 +25,15 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
+      checkPeriod: 96400000, // prune expired entries every 24h
     }),
     cookie: {
-      maxAge: 86400000, // Session duration in milliseconds (24h)
+      maxAge: 986400000, // Session duration in milliseconds (24h)
     },
   })
 );
-
+// Serve images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(

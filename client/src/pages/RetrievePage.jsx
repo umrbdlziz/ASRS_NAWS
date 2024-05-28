@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { ServerContext, AuthContext } from "../context";
 import Layout from "../components/Layout";
+import ItemDetails from "../components/ItemDetails";
 import axios from "axios";
 
 const RetrievePage = () => {
@@ -18,9 +19,16 @@ const RetrievePage = () => {
   const [layoutData, setLayoutData] = useState({});
   const [displayPigeonhole, setDisplayPigeonhole] = useState(false);
   const [greenPigeonhole, setGreenPigeonhole] = useState([]);
-  const [itemCode, setItemCode] = useState("");
+  const [pigeonhole, setPigeonhole] = useState("");
+  const [soNumber, setSoNumber] = useState("");
+  const [itemData, setItemData] = useState(null);
+  const [showRetrieveBin, setShowRetrieveBin] = useState(false);
+  const [bin, setBin] = useState("");
+  const [dataSend, setDataSend] = useState([]);
 
   const firstScanRef = useRef();
+  const secondScanRef = useRef();
+
   const { SERVER_URL } = useContext(ServerContext);
   const { userInfo } = useContext(AuthContext);
 
@@ -58,6 +66,8 @@ const RetrievePage = () => {
         console.log(response.data);
         setLayoutData(response.data.layout);
         setDisplayPigeonhole(true);
+        setSoNumber(Object.keys(response.data.pigeonhole)[0]);
+
         // Access the array values
         const soNumber = Object.keys(response.data.pigeonhole)[0];
         const rackSide = Object.keys(response.data.pigeonhole[soNumber])[0];
@@ -72,17 +82,48 @@ const RetrievePage = () => {
     }
   };
 
-  const handleFirstScan = (event) => {
+  const handleFirstScan = async (event) => {
     if (event.key === "Enter") {
-      console.log("First scan entered:", itemCode);
-      setItemCode("");
+      console.log("First scan entered:", pigeonhole);
+      setPigeonhole("");
+      try {
+        const response = await axios.post(`${SERVER_URL}/retrieve/get_item`, {
+          so_number: soNumber,
+          pigeonhole: pigeonhole,
+        });
+
+        setItemData(response.data.items);
+        setShowRetrieveBin(true);
+        secondScanRef.current.focus();
+      } catch (error) {
+        console.error("Error getting item:", error);
+      }
     } else if (
       event.key !== "Shift" &&
       event.key !== "Tab" &&
-      event.key !== "CapsLock"
+      event.key !== "CapsLock" &&
+      event.key !== "Alt"
     ) {
-      setItemCode(itemCode + event.key);
+      setPigeonhole(pigeonhole + event.key);
     }
+  };
+
+  const handleSecondScan = async (event) => {
+    if (event.key === "Enter") {
+      console.log(bin, dataSend);
+    } else if (
+      event.key !== "Shift" &&
+      event.key !== "Tab" &&
+      event.key !== "CapsLock" &&
+      event.key !== "Alt"
+    ) {
+      setBin(bin + event.key);
+    }
+  };
+
+  const handleQuantitiesChange = (updatedQuantities) => {
+    setDataSend(updatedQuantities);
+    secondScanRef.current.focus();
   };
 
   const handleSwitchChange = (event) => {
@@ -105,8 +146,14 @@ const RetrievePage = () => {
       <input
         ref={firstScanRef}
         type="text"
-        style={{ position: "absolute", left: "-9999px" }}
         onKeyDown={handleFirstScan}
+        style={{ position: "absolute", left: "-9999px" }}
+      />
+      <input
+        ref={secondScanRef}
+        type="text"
+        onKeyDown={handleSecondScan}
+        style={{ position: "absolute", left: "-9998px" }}
       />
       <Box
         display="flex"
@@ -158,11 +205,27 @@ const RetrievePage = () => {
         </Button>
       </Box>
       {displayPigeonhole && (
-        <Layout
-          data={layoutData}
-          currSide="S1"
-          greenPigeonhole={greenPigeonhole}
-        />
+        <Box display="flex" justifyContent="space-between" marginTop={2}>
+          <Box flex={1} marginRight={2}>
+            <Layout
+              data={layoutData}
+              currSide="S1"
+              greenPigeonhole={greenPigeonhole}
+            />
+          </Box>
+          {itemData && (
+            <ItemDetails
+              itemData={itemData}
+              onQuantitiesChange={handleQuantitiesChange}
+            ></ItemDetails>
+          )}
+          {showRetrieveBin && (
+            <Box flex={1}>
+              <Typography variant="h6">Retrieve Bin</Typography>
+              {/* Implement the retrieve bin details here */}
+            </Box>
+          )}
+        </Box>
       )}
       <Box
         display="flex"

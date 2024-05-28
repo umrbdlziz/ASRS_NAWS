@@ -87,6 +87,7 @@ app.post("/get_storage", async (req, res) => {
   const { station, action, user } = req.body;
   let pigeonhole = {};
   let layout = {};
+  let storage = {};
   let message = "";
 
   // get the station type
@@ -157,7 +158,42 @@ app.post("/get_storage", async (req, res) => {
     }
   }
 
-  res.json({ pigeonhole, layout, message });
+  res.json({ pigeonhole, layout, message, storage });
+});
+
+app.post("/get_item", async (req, res) => {
+  const { so_number, pigeonhole } = req.body;
+  const itemArray = [];
+  try {
+    const itemCodeSQL = "SELECT item_code FROM retrieve WHERE so_no = ?";
+    const itemCodeResult = await db.executeAllSQL(itemCodeSQL, [so_number]);
+
+    const pigeonholeSQL =
+      "SELECT item_code FROM pigeonhole WHERE pigeonhole_id = ?";
+    const pigeonholeResult = await db.executeGetSQL(pigeonholeSQL, [
+      pigeonhole,
+    ]);
+
+    if (pigeonholeResult) {
+      const itemCodes = pigeonholeResult.item_code.split(",");
+
+      for (let itemCode of itemCodeResult) {
+        if (itemCodes.includes(itemCode.item_code)) {
+          const itemImgSQL = "SELECT * FROM item WHERE item_code = ?";
+          const itemImgResult = await db.executeGetSQL(itemImgSQL, [
+            itemCode.item_code,
+          ]);
+
+          itemArray.push(itemImgResult);
+        }
+      }
+      res.json({ items: itemArray });
+    } else {
+      console.log("Wrong pigeonhole");
+    }
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 module.exports = app;
