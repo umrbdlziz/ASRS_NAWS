@@ -56,7 +56,7 @@ app.post("/login", (req, res, next) => {
       if (err) {
         return next(err);
       }
-      return res.send({ success: true });
+      return res.send({ success: true, user: user });
     });
   })(req, res, next);
 });
@@ -80,9 +80,13 @@ app.get("/checkAuth", (req, res) => {
 
 const users_api = require("./API/user");
 const retrieve_api = require("./API/retrieve");
+const setting_api = require("./API/setting");
+const { app: fleet_api } = require("./API/fleet");
 
 app.use("/user", users_api);
 app.use("/retrieve", retrieve_api);
+app.use("/setting", setting_api);
+app.use("/fleet", fleet_api);
 
 // Close database when server is shut down
 process.on("SIGINT", () => {

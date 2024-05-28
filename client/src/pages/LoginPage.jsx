@@ -17,7 +17,7 @@ const LoginForm = () => {
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState(""); // success or error
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useContext(AuthContext);
+  const { setIsAuthenticated, setUserInfo } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +25,7 @@ const LoginForm = () => {
       const response = await login(username, password);
       if (response.success) {
         navigate("/");
+        setUserInfo(response.user);
         setIsAuthenticated(true);
       } else {
         console.log(response.message); // Log the message

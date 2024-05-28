@@ -11,13 +11,17 @@ import {
   UserPage,
   InventoryPage,
   OrderListPage,
+  RetrievePage,
 } from "./pages";
 import { checkAuth } from "./components/authService";
-import { AuthContext } from "./context";
+import { AuthContext, ServerContext } from "./context";
 import TopBar from "./components/TopBar"; // Import your TopBar component
+
+const SERVER_URL = "http://192.168.1.48:5001";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userInfo, setUserInfo] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,37 +44,53 @@ const App = () => {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
-      <Router>
-        {location.pathname !== "/login" && <TopBar />}
-        <Routes>
-          <Route
-            path="/login"
-            element={isAuthenticated ? <Navigate to="/home" /> : <LoginPage />}
-          />
-          <Route
-            path="/"
-            element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/user"
-            element={isAuthenticated ? <UserPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/inventory"
-            element={
-              isAuthenticated ? <InventoryPage /> : <Navigate to="/login" />
-            }
-          />
-          <Route
-            path="/order_list"
-            element={
-              isAuthenticated ? <OrderListPage /> : <Navigate to="/login" />
-            }
-          />
-          {/* <Route path="/" element={<Navigate to="/login" />} /> */}
-        </Routes>
-      </Router>
+    <AuthContext.Provider
+      value={{ isAuthenticated, setIsAuthenticated, userInfo, setUserInfo }}
+    >
+      <ServerContext.Provider value={{ SERVER_URL }}>
+        <Router>
+          {location.pathname !== "/login" && <TopBar />}
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? <Navigate to="/home" /> : <LoginPage />
+              }
+            />
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? <HomePage /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/user"
+              element={
+                isAuthenticated ? <UserPage /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                isAuthenticated ? <InventoryPage /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/order_list"
+              element={
+                isAuthenticated ? <OrderListPage /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/retrieve"
+              element={
+                isAuthenticated ? <RetrievePage /> : <Navigate to="/login" />
+              }
+            />
+            {/* <Route path="/" element={<Navigate to="/login" />} /> */}
+          </Routes>
+        </Router>
+      </ServerContext.Provider>
     </AuthContext.Provider>
   );
 };

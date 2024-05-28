@@ -1,7 +1,8 @@
 const express = require("express");
 const app = express();
 const db = require("../models/connectdb");
-const md5 = require("md5");
+const { getRackLayout } = require("./warehouse");
+const { fleet } = require("./fleet");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -80,6 +81,83 @@ app.delete("/delete_order/:id", async (req, res) => {
   const sql = "DELETE FROM retrieve WHERE id = ?";
   await db.executeRunSQL(sql, [id]);
   res.json({ message: "Order deleted" });
+});
+
+app.post("/get_storage", async (req, res) => {
+  const { station, action, user } = req.body;
+  let pigeonhole = {};
+  let layout = {};
+  let message = "";
+
+  // get the station type
+  const stationSQL = "SELECT type FROM station WHERE station_id = ?";
+  const stationResult = await db.executeGetSQL(stationSQL, [station]);
+
+  // get order list
+  const numberSQL = "SELECT DISTINCT so_no FROM retrieve WHERE status = 0";
+  const numberResult = await db.executeAllSQL(numberSQL, []);
+
+  if (stationResult.type === "pigeonhole") {
+    for (let number of numberResult) {
+      const orderSQL = "SELECT * FROM retrieve WHERE so_no = ? AND status = 0";
+      const orderResult = await db.executeAllSQL(orderSQL, [number.so_no]);
+
+      let counter = 0;
+      let tempData = {};
+
+      for (let order of orderResult) {
+        const pigeonholeSQL = "SELECT * FROM pigeonhole WHERE item_code LIKE ?";
+        const pigeonholeResult = await db.executeGetSQL(pigeonholeSQL, [
+          `%${order.item_code}%`,
+        ]);
+
+        if (pigeonholeResult) {
+          // Split the item_code string into an array and count the occurrences of each item code
+          const itemCodes = pigeonholeResult.item_code.split(",");
+          const itemCount = itemCodes.reduce((acc, code) => {
+            acc[code] = (acc[code] || 0) + 1;
+            return acc;
+          }, {});
+
+          // Check if the quantity in the order matches the count of the item code in the pigeonhole
+          if (itemCount[order.item_code] >= order.item_quantity) {
+            // Split the pigeonhole_id into an array
+            const pigeonholeIdParts = pigeonholeResult.pigeonhole_id.split("-");
+
+            // Get the first two parts
+            const part1 = pigeonholeIdParts[0]; // "R1"
+            const part2 = pigeonholeIdParts[1]; // "S1"
+
+            // Create a key from part1 and part2
+            const key = `${part1}-${part2}`;
+
+            // If the key already exists, append the pigeonhole_id to the existing array
+            // If it doesn't exist, create a new array with the pigeonhole_id
+            tempData[key] = tempData[key]
+              ? [...tempData[key], pigeonholeResult.pigeonhole_id]
+              : [pigeonholeResult.pigeonhole_id];
+
+            counter++;
+          }
+        }
+      }
+
+      // Check if all the item_code in a so_no are in the pigeonhole
+      if (counter === orderResult.length) {
+        pigeonhole[number.so_no] = tempData;
+
+        for (let rack in tempData) {
+          const [rack_id, side] = rack.split("-");
+          fleet(action, rack_id, side);
+          layout = await getRackLayout(rack_id);
+          layout === "undefined" && (message = "Rack layout not found");
+          break;
+        }
+      }
+    }
+  }
+
+  res.json({ pigeonhole, layout, message });
 });
 
 module.exports = app;

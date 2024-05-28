@@ -129,6 +129,76 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         }
       }
     );
+    db.run(
+      `CREATE TABLE "station" (
+      "station_id"	TEXT NOT NULL,
+      "x"	NUMERIC NOT NULL,
+      "y"	NUMERIC NOT NULL,
+      "z"	NUMERIC NOT NULL,
+      "yaw"	NUMERIC NOT NULL,
+      "type"	TEXT NOT NULL,
+      "is_available"	BOOLEAN,
+      PRIMARY KEY("station_id")
+  );`,
+      (err) => {
+        if (err) {
+          // console.log("Table already exist");
+        } else {
+          // Table just created, can creating some rows
+          console.log("station table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "pigeonhole" (
+            "pigeonhole_id"	TEXT NOT NULL PRIMARY KEY,
+            "item_code"	TEXT,
+            "date" DATETIME,
+            "user_id" INTEGER
+        );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("pigeonhole table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "rack" (
+      "rack_id"	TEXT NOT NULL UNIQUE,
+      "x"	NUMERIC NOT NULL,
+      "y"	NUMERIC NOT NULL,
+      "z"	NUMERIC NOT NULL,
+      "yaw"	NUMERIC NOT NULL,
+      "is_available"	BOOLEAN,
+      "pattern" NUMERIC NOT NULL,
+      PRIMARY KEY("rack_id")
+  );`,
+      (err) => {
+        if (err) {
+          // console.log("Table already exist");
+        } else {
+          // Table just created, can creating some rows
+          console.log("rack table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "pattern" (
+      "pattern_id"	TEXT NOT NULL PRIMARY KEY,
+      "pattern"	TEXT NOT NULL
+  );`,
+      (err) => {
+        if (err) {
+          // console.log("Table already exist");
+        } else {
+          // Table just created, can creating some rows
+          console.log("pattern table has been created");
+        }
+      }
+    );
   }
 });
 
