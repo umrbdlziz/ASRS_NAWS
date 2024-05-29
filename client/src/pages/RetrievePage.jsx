@@ -10,6 +10,8 @@ import {
 import { ServerContext, AuthContext } from "../context";
 import Layout from "../components/Layout";
 import ItemDetails from "../components/ItemDetails";
+import RetrieveBin from "../components/RetrieveBin";
+import ScanDialog from "../components/ScanDialog";
 import axios from "axios";
 
 const RetrievePage = () => {
@@ -22,9 +24,12 @@ const RetrievePage = () => {
   const [pigeonhole, setPigeonhole] = useState("");
   const [soNumber, setSoNumber] = useState("");
   const [itemData, setItemData] = useState(null);
-  const [showRetrieveBin, setShowRetrieveBin] = useState(false);
   const [bin, setBin] = useState("");
   const [dataSend, setDataSend] = useState([]);
+  const [retrieveRack, setRetrieveRack] = useState({});
+  const [greenBin, setGreenBin] = useState({});
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState(false);
 
   const firstScanRef = useRef();
   const secondScanRef = useRef();
@@ -79,13 +84,20 @@ const RetrievePage = () => {
       } catch (error) {
         console.error("Error retrieving order:", error);
       }
+
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/retrieve/get_ratrieve_rack?station_id=${selectedStation}`
+        );
+        setRetrieveRack(response.data);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
   const handleFirstScan = async (event) => {
     if (event.key === "Enter") {
-      console.log("First scan entered:", pigeonhole);
-      setPigeonhole("");
       try {
         const response = await axios.post(`${SERVER_URL}/retrieve/get_item`, {
           so_number: soNumber,
@@ -93,11 +105,21 @@ const RetrievePage = () => {
         });
 
         setItemData(response.data.items);
-        setShowRetrieveBin(true);
         secondScanRef.current.focus();
       } catch (error) {
         console.error("Error getting item:", error);
       }
+
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/retrieve/get_bin?so_no=${soNumber}`
+        );
+        setGreenBin(response.data);
+      } catch (error) {
+        console.log("Error getting bin:", error);
+      }
+    } else if (event.key === "Backspace") {
+      setPigeonhole(pigeonhole.slice(0, -1));
     } else if (
       event.key !== "Shift" &&
       event.key !== "Tab" &&
@@ -110,7 +132,32 @@ const RetrievePage = () => {
 
   const handleSecondScan = async (event) => {
     if (event.key === "Enter") {
-      console.log(bin, dataSend);
+      if (bin != greenBin.bin_id) {
+        setDialogMessage(false);
+        setDialogOpen(true);
+      } else {
+        try {
+          const response = await axios.post(
+            `${SERVER_URL}/retrieve/update_retrieve`,
+            {
+              dataSend: dataSend,
+              so_number: soNumber,
+              pigeonholeId: pigeonhole,
+            }
+          );
+
+          console.log("Success:", response.data);
+          setDialogMessage(true);
+          setDialogOpen(true);
+        } catch (error) {
+          console.error("Error getting item:", error);
+        }
+      }
+      setBin("");
+      setPigeonhole("");
+      firstScanRef.current.focus();
+    } else if (event.key === "Backspace") {
+      setBin(bin.slice(0, -1));
     } else if (
       event.key !== "Shift" &&
       event.key !== "Tab" &&
@@ -140,20 +187,38 @@ const RetrievePage = () => {
     console.log("Complete button clicked");
   };
 
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  const handleRetry = () => {
+    setDialogOpen(false);
+    secondScanRef.current.focus();
+  };
+
+  const handleCompleteDialog = () => {
+    setDialogOpen(false);
+    firstScanRef.current.focus();
+    setGreenBin({});
+    setItemData(null);
+  };
+
   return (
     <div style={{ margin: 10 }}>
       {/* hidden input */}
       <input
         ref={firstScanRef}
         type="text"
+        value={pigeonhole}
         onKeyDown={handleFirstScan}
-        style={{ position: "absolute", left: "-9999px" }}
+        style={{ position: "absolute", left: "0px" }}
       />
       <input
         ref={secondScanRef}
         type="text"
+        value={bin}
         onKeyDown={handleSecondScan}
-        style={{ position: "absolute", left: "-9998px" }}
+        style={{ position: "absolute", left: "1000px" }}
       />
       <Box
         display="flex"
@@ -204,29 +269,30 @@ const RetrievePage = () => {
           Start
         </Button>
       </Box>
-      {displayPigeonhole && (
-        <Box display="flex" justifyContent="space-between" marginTop={2}>
-          <Box flex={1} marginRight={2}>
-            <Layout
-              data={layoutData}
-              currSide="S1"
-              greenPigeonhole={greenPigeonhole}
-            />
-          </Box>
-          {itemData && (
-            <ItemDetails
-              itemData={itemData}
-              onQuantitiesChange={handleQuantitiesChange}
-            ></ItemDetails>
+      <Box display="flex" justifyContent="space-between" marginTop={2}>
+        <>
+          {displayPigeonhole && (
+            <>
+              <Box flex={1} marginRight={2}>
+                <Layout
+                  data={layoutData}
+                  currSide="S1"
+                  greenPigeonhole={greenPigeonhole}
+                />
+              </Box>
+              <ItemDetails
+                itemData={itemData}
+                onQuantitiesChange={handleQuantitiesChange}
+              ></ItemDetails>
+              <RetrieveBin
+                row={retrieveRack.row}
+                column={retrieveRack.column}
+                greenBin={greenBin}
+              ></RetrieveBin>
+            </>
           )}
-          {showRetrieveBin && (
-            <Box flex={1}>
-              <Typography variant="h6">Retrieve Bin</Typography>
-              {/* Implement the retrieve bin details here */}
-            </Box>
-          )}
-        </Box>
-      )}
+        </>
+      </Box>
       <Box
         display="flex"
         justifyContent="flex-end"
@@ -246,6 +312,13 @@ const RetrievePage = () => {
           Complete
         </Button>
       </Box>
+      <ScanDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        onRetry={handleRetry}
+        onComplete={handleCompleteDialog}
+        message={dialogMessage}
+      />
     </div>
   );
 };

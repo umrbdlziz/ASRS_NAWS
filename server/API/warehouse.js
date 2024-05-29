@@ -9,10 +9,18 @@ async function getRackLayout(rack) {
   const rackSQL = "SELECT pattern FROM rack WHERE rack_id = ?";
   const rackResult = await db.executeGetSQL(rackSQL, rack);
 
-  const patternSQL = "SELECT pattern FROM pattern WHERE pattern_id = ?";
-  const patternResult = await db.executeGetSQL(patternSQL, rackResult.pattern);
+  if (!rackResult) {
+    console.log(`Rack ${rack} don't have in database`);
+    return;
+  } else {
+    const patternSQL = "SELECT pattern FROM pattern WHERE pattern_id = ?";
+    const patternResult = await db.executeGetSQL(
+      patternSQL,
+      rackResult.pattern
+    );
 
-  return JSON.parse(patternResult.pattern);
+    return JSON.parse(patternResult.pattern);
+  }
 }
 
 module.exports = { getRackLayout };

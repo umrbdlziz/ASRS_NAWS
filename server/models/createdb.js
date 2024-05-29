@@ -138,6 +138,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
       "yaw"	NUMERIC NOT NULL,
       "type"	TEXT NOT NULL,
       "is_available"	BOOLEAN,
+      "retrieve_rack_id"  TEXT,
       PRIMARY KEY("station_id")
   );`,
       (err) => {
@@ -211,6 +212,36 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         } else {
           // Table just created, can creating some rows
           console.log("item table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "retrieve_rack" (
+        "retrieve_rack_id" TEXT NOT NULL PRIMARY KEY,
+        "row" INTEGER NOT NULL,
+        "column" INTEGER NOT NULL
+      );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("retrieve_rack table has been created");
+        }
+      }
+    );
+    db.run(
+      `CREATE TABLE "retrieve_bin" (
+        "bin_id" TEXT NOT NULL PRIMARY KEY,
+        "so_no" TEXT NOT NULL,
+        "position" TEXT NOT NULL
+      );`,
+      (err) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          // Table just created, can creating some rows
+          console.log("retrieve_bin table has been created");
         }
       }
     );

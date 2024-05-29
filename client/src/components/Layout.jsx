@@ -42,7 +42,7 @@ const Layout = ({ data, currSide, greenPigeonhole }) => {
       .map(([levelName, layout]) => {
         const [row, col] = Object.entries(layout)[0];
         return (
-          <div key={levelName} style={{ width: "400px" }}>
+          <div key={levelName} style={{ width: "450px" }}>
             <Grid container>
               {renderLevel(levelName, parseInt(row), parseInt(col))}
             </Grid>

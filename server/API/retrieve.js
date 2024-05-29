@@ -196,4 +196,102 @@ app.post("/get_item", async (req, res) => {
   }
 });
 
+app.get("/get_ratrieve_rack", async (req, res) => {
+  const station_id = req.query.station_id;
+
+  const retrieveRackSQL =
+    "SELECT retrieve_rack_id FROM station WHERE station_id = ?";
+  const retrieveRackresult = await db.executeGetSQL(retrieveRackSQL, [
+    station_id,
+  ]);
+
+  const rackLayoutSQL =
+    "SELECT * FROM retrieve_rack WHERE retrieve_rack_id = ?";
+  const rackLayoutResult = await db.executeGetSQL(rackLayoutSQL, [
+    retrieveRackresult.retrieve_rack_id,
+  ]);
+
+  res.json(rackLayoutResult);
+});
+
+app.get("/get_bin", async (req, res) => {
+  const so_no = req.query.so_no;
+  const binSQL = "SELECT position, bin_id FROM retrieve_bin WHERE so_no = ?";
+  const binResult = await db.executeGetSQL(binSQL, [so_no]);
+
+  res.json(binResult);
+});
+
+app.post("/update_retrieve", async (req, res) => {
+  const { dataSend, so_number, pigeonholeId } = req.body;
+
+  try {
+    for (let data of dataSend) {
+      const { item_code, quantity } = data;
+
+      // Fetch the item from the retrieve table
+      const retrieveSQL =
+        "SELECT item_code, item_quantity FROM retrieve WHERE so_no = ? AND item_code = ?";
+      const retrieveResult = await db.executeGetSQL(retrieveSQL, [
+        so_number,
+        item_code,
+      ]);
+
+      if (retrieveResult) {
+        // Fetch the item codes from the pigeonhole table
+        const quantitySQL =
+          "SELECT item_code FROM pigeonhole WHERE pigeonhole_id = ?";
+        const quantityResult = await db.executeGetSQL(quantitySQL, [
+          pigeonholeId,
+        ]);
+
+        if (quantityResult && quantityResult.item_code) {
+          const updatedItemCodeList = removeItemCodes(
+            quantityResult.item_code,
+            item_code,
+            quantity
+          );
+
+          // Update the pigeonhole table with the new item_code list
+          const updatePigeonholeSQL =
+            "UPDATE pigeonhole SET item_code = ? WHERE pigeonhole_id = ?";
+          await db.executeRunSQL(updatePigeonholeSQL, [
+            updatedItemCodeList,
+            pigeonholeId,
+          ]);
+
+          // Update the retrieve table
+          const updateRetrieveSQL =
+            "UPDATE retrieve SET status = true, datetime_retrieve = datetime('now') WHERE item_code = ? AND so_no = ?";
+          await db.executeRunSQL(updateRetrieveSQL, [
+            retrieveResult.item_code,
+            so_number,
+          ]);
+        }
+      }
+    }
+
+    res.json({ message: "Order updated" });
+  } catch (error) {
+    console.error("Error updating retrieve:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Function to remove a specified item code a given number of times from a comma-separated string
+function removeItemCodes(itemCodes, itemCode, quantity) {
+  const array = itemCodes.split(",");
+  let count = 0;
+
+  const updatedArray = array.filter((code) => {
+    if (code === itemCode && count < quantity) {
+      count++;
+      return false;
+    }
+    return true;
+  });
+
+  return updatedArray.join(",");
+}
+
 module.exports = app;
