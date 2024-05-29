@@ -12,6 +12,7 @@ import {
   InventoryPage,
   OrderListPage,
   RetrievePage,
+  StoreListPage,
 } from "./pages";
 import { checkAuth } from "./components/authService";
 import { AuthContext, ServerContext } from "./context";
@@ -85,6 +86,12 @@ const App = () => {
               path="/retrieve"
               element={
                 isAuthenticated ? <RetrievePage /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/store_list"
+              element={
+                isAuthenticated ? <StoreListPage /> : <Navigate to="/login" />
               }
             />
             {/* <Route path="/" element={<Navigate to="/login" />} /> */}

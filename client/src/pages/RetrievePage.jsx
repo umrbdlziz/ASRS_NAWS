@@ -211,6 +211,7 @@ const RetrievePage = () => {
         type="text"
         value={pigeonhole}
         onKeyDown={handleFirstScan}
+        onChange={() => {}}
         style={{ position: "absolute", left: "0px" }}
       />
       <input
@@ -218,6 +219,7 @@ const RetrievePage = () => {
         type="text"
         value={bin}
         onKeyDown={handleSecondScan}
+        onChange={() => {}}
         style={{ position: "absolute", left: "1000px" }}
       />
       <Box
