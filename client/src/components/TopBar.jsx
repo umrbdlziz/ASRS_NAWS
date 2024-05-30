@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,7 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  TextField,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
@@ -22,13 +23,37 @@ import MapIcon from "@mui/icons-material/Map";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
 import { logout } from "./authService";
-import { AuthContext } from "../context";
+import { AuthContext, ServerContext, StationContext } from "../context";
+import axios from "axios";
 
 const TopBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedStation, setSelectedStation] = useState("");
+  const [stations, setStations] = useState([]);
+
   const navigate = useNavigate();
   const { setIsAuthenticated } = useContext(AuthContext);
+  const { SERVER_URL } = useContext(ServerContext);
+  const { setCurrentStation } = useContext(StationContext);
+
+  useEffect(() => {
+    // Fetch stations from the server
+    const fetchStations = async () => {
+      try {
+        const stationResponse = await axios.get(
+          `${SERVER_URL}/setting/all_station`
+        );
+
+        setStations(stationResponse.data);
+        setCurrentStation(stationResponse.data);
+      } catch (error) {
+        console.error("Error fetching stations:", error);
+      }
+    };
+
+    fetchStations();
+  }, [SERVER_URL, setCurrentStation]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -81,6 +106,20 @@ const TopBar = () => {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             HomePage
           </Typography>
+          <TextField
+            select
+            label="Select Station"
+            value={selectedStation}
+            onChange={(e) => setSelectedStation(e.target.value)}
+            margin="normal"
+            style={{ flex: 1, marginRight: 16 }}
+          >
+            {stations.map((station) => (
+              <MenuItem key={station.station_id} value={station.station_id}>
+                {station.station_id}
+              </MenuItem>
+            ))}
+          </TextField>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <IconButton onClick={handleMenuOpen} color="inherit">
               <Avatar>
@@ -119,11 +158,11 @@ const TopBar = () => {
               </ListItemIcon>
               <ListItemText primary="Home Page" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/retrieve")}>
+            <ListItem button onClick={() => navigate("/station")}>
               <ListItemIcon>
                 <StoreIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
-              <ListItemText primary="Retrieve" />
+              <ListItemText primary="Station" />
             </ListItem>
             <ListItem button onClick={() => navigate("/map")}>
               <ListItemIcon>

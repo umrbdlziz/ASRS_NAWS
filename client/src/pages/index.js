@@ -3,7 +3,7 @@ import LoginPage from "./LoginPage";
 import UserPage from "./UserPage";
 import InventoryPage from "./InventoryPage";
 import OrderListPage from "./OrderListPage";
-import RetrievePage from "./RetrievePage";
+import StationPage from "./StationPage";
 import StoreListPage from "./StoreListPage";
 import MapPage from "./MapPage";
 
@@ -13,7 +13,7 @@ export {
   UserPage,
   InventoryPage,
   OrderListPage,
-  RetrievePage,
+  StationPage,
   StoreListPage,
   MapPage,
 };

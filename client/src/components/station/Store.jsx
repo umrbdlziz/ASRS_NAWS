@@ -82,7 +82,6 @@ const Store = () => {
   const handleItemCodeInput = async (event) => {
     if (event.key === "Enter") {
       console.log("item code: ", scanItemCode);
-      setScanItemCode(event.key);
 
       const isItemCodeInStoreList = storeData.storeList.some(
         (item) => item.item_code === scanItemCode

@@ -15,7 +15,7 @@ import ScanDialog from "../components/ScanDialog";
 import { Store } from "../components";
 import axios from "axios";
 
-const RetrievePage = () => {
+const StationPage = () => {
   const [stations, setStations] = useState([]);
   const [isRetrieve, setIsRetrieve] = useState(true);
   const [selectedStation, setSelectedStation] = useState("");
@@ -311,7 +311,7 @@ const RetrievePage = () => {
           )}
         </>
       </Box>
-      {/* <Box
+      <Box
         display="flex"
         justifyContent="flex-end"
         position="fixed"
@@ -329,7 +329,7 @@ const RetrievePage = () => {
         <Button variant="contained" color="primary" onClick={handleComplete}>
           Complete
         </Button>
-      </Box> */}
+      </Box>
       <ScanDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
@@ -341,4 +341,4 @@ const RetrievePage = () => {
   );
 };
 
-export default RetrievePage;
+export default StationPage;

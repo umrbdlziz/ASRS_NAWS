@@ -84,8 +84,8 @@ app.delete("/delete_order/:id", async (req, res) => {
   res.json({ message: "Order deleted" });
 });
 
-app.post("/get_storage", async (req, res) => {
-  const { station, action, user } = req.body;
+app.get("/get_retrieve", async (req, res) => {
+  const { station_id, user } = req.query;
   let pigeonhole = {};
   let layout = {};
   let storage = {};
@@ -93,7 +93,7 @@ app.post("/get_storage", async (req, res) => {
 
   // get the station type
   const stationSQL = "SELECT type FROM station WHERE station_id = ?";
-  const stationResult = await db.executeGetSQL(stationSQL, [station]);
+  const stationResult = await db.executeGetSQL(stationSQL, [station_id]);
 
   // get order list
   const numberSQL = "SELECT DISTINCT so_no FROM retrieve WHERE status = 0";
@@ -150,7 +150,7 @@ app.post("/get_storage", async (req, res) => {
 
         for (let rack in tempData) {
           const [rack_id, side] = rack.split("-");
-          fleet(action, rack_id, side);
+          fleet("retrieve", rack_id, side);
           layout = await getRackLayout(rack_id);
           layout === "undefined" && (message = "Rack layout not found");
           break;
@@ -188,6 +188,7 @@ app.post("/get_item", async (req, res) => {
           itemArray.push(itemImgResult);
         }
       }
+
       res.json({ items: itemArray });
     } else {
       console.log("Wrong pigeonhole");
@@ -200,19 +201,23 @@ app.post("/get_item", async (req, res) => {
 app.get("/get_ratrieve_rack", async (req, res) => {
   const station_id = req.query.station_id;
 
-  const retrieveRackSQL =
-    "SELECT retrieve_rack_id FROM station WHERE station_id = ?";
-  const retrieveRackresult = await db.executeGetSQL(retrieveRackSQL, [
-    station_id,
-  ]);
+  try {
+    const retrieveRackSQL =
+      "SELECT retrieve_rack_id FROM station WHERE station_id = ?";
+    const retrieveRackresult = await db.executeGetSQL(retrieveRackSQL, [
+      station_id,
+    ]);
 
-  const rackLayoutSQL =
-    "SELECT * FROM retrieve_rack WHERE retrieve_rack_id = ?";
-  const rackLayoutResult = await db.executeGetSQL(rackLayoutSQL, [
-    retrieveRackresult.retrieve_rack_id,
-  ]);
+    const rackLayoutSQL =
+      "SELECT * FROM retrieve_rack WHERE retrieve_rack_id = ?";
+    const rackLayoutResult = await db.executeGetSQL(rackLayoutSQL, [
+      retrieveRackresult.retrieve_rack_id,
+    ]);
 
-  res.json(rackLayoutResult);
+    res.json(rackLayoutResult);
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.get("/get_bin", async (req, res) => {
