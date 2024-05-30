@@ -118,7 +118,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         "uom"	TEXT NOT NULL,
         "datetime_store" DATETIME,
         "user_id" INTEGER,
-        "status" BOOLEAN NOT NULL
+        "status" INTEGER NOT NULL
       );`,
       (err) => {
         if (err) {

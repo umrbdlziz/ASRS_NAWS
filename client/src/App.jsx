@@ -13,6 +13,7 @@ import {
   OrderListPage,
   RetrievePage,
   StoreListPage,
+  MapPage,
 } from "./pages";
 import { checkAuth } from "./components/authService";
 import { AuthContext, ServerContext } from "./context";
@@ -28,7 +29,7 @@ const App = () => {
   useEffect(() => {
     const checkUserAuth = async () => {
       try {
-        const response = await checkAuth();
+        const response = await checkAuth(SERVER_URL);
         setIsAuthenticated(response.authenticated);
       } catch (error) {
         console.error("Error checking authentication:", error);
@@ -69,6 +70,10 @@ const App = () => {
               element={
                 isAuthenticated ? <UserPage /> : <Navigate to="/login" />
               }
+            />
+            <Route
+              path="/map"
+              element={isAuthenticated ? <MapPage /> : <Navigate to="/login" />}
             />
             <Route
               path="/inventory"

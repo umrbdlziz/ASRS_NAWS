@@ -25,10 +25,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: new MemoryStore({
-      checkPeriod: 96400000, // prune expired entries every 24h
+      checkPeriod: 86400000, // prune expired entries every 24h
     }),
     cookie: {
-      maxAge: 986400000, // Session duration in milliseconds (24h)
+      maxAge: 86400000, // Session duration in milliseconds (24h)
     },
   })
 );

@@ -125,13 +125,13 @@ const TopBar = () => {
               </ListItemIcon>
               <ListItemText primary="Retrieve" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/live-map")}>
+            <ListItem button onClick={() => navigate("/map")}>
               <ListItemIcon>
                 <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Live Map" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/inventory_list")}>
+            <ListItem button onClick={() => navigate("/inventory")}>
               <ListItemIcon>
                 <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>

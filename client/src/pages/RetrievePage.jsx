@@ -12,11 +12,12 @@ import Layout from "../components/Layout";
 import ItemDetails from "../components/ItemDetails";
 import RetrieveBin from "../components/RetrieveBin";
 import ScanDialog from "../components/ScanDialog";
+import { Store } from "../components";
 import axios from "axios";
 
 const RetrievePage = () => {
   const [stations, setStations] = useState([]);
-  const [isStore, setIsStore] = useState(false);
+  const [isRetrieve, setIsRetrieve] = useState(true);
   const [selectedStation, setSelectedStation] = useState("");
   const [layoutData, setLayoutData] = useState({});
   const [displayPigeonhole, setDisplayPigeonhole] = useState(false);
@@ -30,6 +31,8 @@ const RetrievePage = () => {
   const [greenBin, setGreenBin] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState(false);
+  const [currRack, setCurrRack] = useState("");
+  const [currSide, setCurrSide] = useState("");
 
   const firstScanRef = useRef();
   const secondScanRef = useRef();
@@ -59,39 +62,50 @@ const RetrievePage = () => {
       alert("Please select a station");
       return;
     } else {
-      try {
-        const response = await axios.post(
-          `${SERVER_URL}/retrieve/get_storage`,
-          {
-            station: selectedStation,
-            action: isStore ? "store" : "retrieve",
-            user: userInfo.id,
-          }
-        );
-        console.log(response.data);
-        setLayoutData(response.data.layout);
-        setDisplayPigeonhole(true);
-        setSoNumber(Object.keys(response.data.pigeonhole)[0]);
+      if (!isRetrieve) {
+        console.log("Store");
+      } else {
+        try {
+          const response = await axios.post(
+            `${SERVER_URL}/retrieve/get_storage`,
+            {
+              station: selectedStation,
+              action: isRetrieve ? "retrieve" : "store",
+              user: userInfo.id,
+            }
+          );
+          console.log(response.data);
+          setLayoutData(response.data.layout);
+          setDisplayPigeonhole(true);
+          setSoNumber(Object.keys(response.data.pigeonhole)[0]);
 
-        // Access the array values
-        const soNumber = Object.keys(response.data.pigeonhole)[0];
-        const rackSide = Object.keys(response.data.pigeonhole[soNumber])[0];
-        const pigeonholeArray = response.data.pigeonhole[soNumber][rackSide];
+          // Access the array values
+          const soNumber = Object.keys(response.data.pigeonhole)[0];
+          const rackSide = Object.keys(response.data.pigeonhole[soNumber])[0];
+          const pigeonholeArray = response.data.pigeonhole[soNumber][rackSide];
 
-        // Set the array to setGreenPigeonhole
-        setGreenPigeonhole(pigeonholeArray);
-        firstScanRef.current.focus();
-      } catch (error) {
-        console.error("Error retrieving order:", error);
-      }
+          setCurrRack(
+            Object.keys(response.data.pigeonhole[soNumber])[0].split("-")[0]
+          );
+          setCurrSide(
+            Object.keys(response.data.pigeonhole[soNumber])[0].split("-")[1]
+          );
 
-      try {
-        const response = await axios.get(
-          `${SERVER_URL}/retrieve/get_ratrieve_rack?station_id=${selectedStation}`
-        );
-        setRetrieveRack(response.data);
-      } catch (error) {
-        console.log(error);
+          // Set the array to setGreenPigeonhole
+          setGreenPigeonhole(pigeonholeArray);
+          firstScanRef.current.focus();
+        } catch (error) {
+          console.error("Error retrieving order:", error);
+        }
+
+        try {
+          const response = await axios.get(
+            `${SERVER_URL}/retrieve/get_ratrieve_rack?station_id=${selectedStation}`
+          );
+          setRetrieveRack(response.data);
+        } catch (error) {
+          console.log(error);
+        }
       }
     }
   };
@@ -174,7 +188,7 @@ const RetrievePage = () => {
   };
 
   const handleSwitchChange = (event) => {
-    setIsStore(event.target.checked);
+    setIsRetrieve(event.target.checked);
   };
 
   const handleNext = () => {
@@ -232,7 +246,7 @@ const RetrievePage = () => {
           Store
         </Typography>
         <Switch
-          checked={isStore}
+          checked={isRetrieve}
           onChange={handleSwitchChange}
           color="primary"
         />
@@ -271,14 +285,16 @@ const RetrievePage = () => {
           Start
         </Button>
       </Box>
-      <Box display="flex" justifyContent="space-between" marginTop={2}>
+      {isRetrieve ? <div></div> : <Store />}
+      <Box display="flex" justifyContent="space-between" marginX={2}>
         <>
           {displayPigeonhole && (
             <>
               <Box flex={1} marginRight={2}>
                 <Layout
                   data={layoutData}
-                  currSide="S1"
+                  currRack={currRack}
+                  currSide={currSide}
                   greenPigeonhole={greenPigeonhole}
                 />
               </Box>
@@ -295,7 +311,7 @@ const RetrievePage = () => {
           )}
         </>
       </Box>
-      <Box
+      {/* <Box
         display="flex"
         justifyContent="flex-end"
         position="fixed"
@@ -313,7 +329,7 @@ const RetrievePage = () => {
         <Button variant="contained" color="primary" onClick={handleComplete}>
           Complete
         </Button>
-      </Box>
+      </Box> */}
       <ScanDialog
         open={dialogOpen}
         onClose={handleCloseDialog}

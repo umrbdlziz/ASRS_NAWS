@@ -1,11 +1,9 @@
 import axios from "axios";
 
-const API_URL = "http://192.168.1.48:5001";
-
-export const login = async (username, password) => {
+export const login = async (username, password, SERVER_URL) => {
   try {
     const response = await axios.post(
-      `${API_URL}/login`,
+      `${SERVER_URL}/login`,
       { username, password },
       { withCredentials: true }
     );
@@ -16,9 +14,9 @@ export const login = async (username, password) => {
   }
 };
 
-export const checkAuth = async () => {
+export const checkAuth = async (SERVER_URL) => {
   try {
-    const response = await axios.get(`${API_URL}/checkAuth`, {
+    const response = await axios.get(`${SERVER_URL}/checkAuth`, {
       withCredentials: true,
     });
     return response.data;
@@ -27,9 +25,9 @@ export const checkAuth = async () => {
   }
 };
 
-export const logout = async () => {
+export const logout = async (SERVER_URL) => {
   try {
-    const response = await axios.get(`${API_URL}/logout`, {
+    const response = await axios.get(`${SERVER_URL}/logout`, {
       withCredentials: true,
     });
     return response.data;

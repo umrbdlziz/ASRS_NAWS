@@ -9,7 +9,7 @@ import {
   Alert,
 } from "@mui/material";
 import { login } from "../components/authService";
-import { AuthContext } from "../context";
+import { AuthContext, ServerContext } from "../context";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -18,11 +18,12 @@ const LoginForm = () => {
   const [alertType, setAlertType] = useState(""); // success or error
   const navigate = useNavigate();
   const { setIsAuthenticated, setUserInfo } = useContext(AuthContext);
+  const { SERVER_URL } = useContext(ServerContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await login(username, password);
+      const response = await login(username, password, SERVER_URL);
       if (response.success) {
         navigate("/");
         setUserInfo(response.user);

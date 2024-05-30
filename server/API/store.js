@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const db = require("../models/connectdb");
+const { fleet } = require("./fleet");
+const { getItemInfo, removeItemCodes } = require("./item");
+const { getRackLayout, getLeastItemsRackAndSide } = require("./warehouse");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -83,6 +86,118 @@ app.delete("/delete_store/:id", async (req, res) => {
   const sql = "DELETE FROM store WHERE id = ?";
   await db.executeRunSQL(sql, [id]);
   res.json({ message: "Order deleted" });
+});
+
+app.get("/get_store_numbers", async (req, res) => {
+  const sql = "SELECT DISTINCT no FROM store WHERE status = 0";
+  const result = await db.executeAllSQL(sql, []);
+  res.send(result);
+});
+
+app.get("/get_store_data", async (req, res) => {
+  const storeNo = req.query.store_no;
+
+  try {
+    const { leastItemsRack, leastItemsSide } = await getLeastItemsRackAndSide();
+    fleet("store", leastItemsRack, leastItemsSide);
+    const layout = await getRackLayout(leastItemsRack);
+
+    const storeListSQL =
+      "SELECT * FROM store WHERE no = ? AND status < item_quantity";
+    const storeList = await db.executeAllSQL(storeListSQL, [storeNo]);
+
+    res.send({ layout, leastItemsRack, leastItemsSide, storeList });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/get_item_info", async (req, res) => {
+  const { item_code, store_no } = req.query;
+  const message = "";
+  const data = {};
+
+  try {
+    const itemInfo = await getItemInfo(item_code);
+
+    const storeSQL =
+      "SELECT item_code, item_quantity FROM store WHERE no = ? AND item_code = ?";
+    const storeResult = await db.executeGetSQL(storeSQL, [store_no, item_code]);
+
+    if (!storeResult) {
+      res.send({ message: "Item not in the list" });
+      return;
+    }
+
+    if (itemInfo.length === 0) {
+      data["message"] = "Item code not in item table";
+    }
+
+    data["itemInfo"] = itemInfo;
+  } catch (error) {
+    console.log(error);
+  }
+
+  try {
+    const pigeonholeSQL = "SELECT pigeonhole_id FROM pigeonhole";
+    const pigeonholeResult = await db.executeAllSQL(pigeonholeSQL, []);
+    data["pigeonhole"] = pigeonholeResult;
+  } catch (error) {
+    console.log(error);
+  }
+
+  res.send(data);
+});
+
+app.post("/update_store", async (req, res) => {
+  const { item_code, quantity, store_no, pigeonhole_id, user_id } = req.body;
+  let message = "";
+
+  try {
+    // Fetch the current item_code value from the pigeonhole table
+    const fetchPigeonholeSQL =
+      "SELECT item_code FROM pigeonhole WHERE pigeonhole_id = ?";
+    const result = await db.executeGetSQL(fetchPigeonholeSQL, [pigeonhole_id]);
+
+    if (result) {
+      const currentItemCodes = result.item_code
+        ? result.item_code.split(",")
+        : [];
+
+      // Add the new item code to the list
+      for (let i = 0; i < quantity; i++) {
+        currentItemCodes.push(item_code);
+      }
+
+      // Create the new item_code string
+      const newItemCodesStr = currentItemCodes.join(",");
+
+      // Update the pigeonhole table with the new item_code list
+      const updatePigeonholeSQL =
+        "UPDATE pigeonhole SET item_code = ? WHERE pigeonhole_id = ?";
+      await db.executeRunSQL(updatePigeonholeSQL, [
+        newItemCodesStr,
+        pigeonhole_id,
+      ]);
+
+      // Update the store table
+      const storeSQL =
+        "UPDATE store SET status = status + ?, datetime_store = datetime('now'), user_id = ? WHERE no = ? AND item_code = ?";
+      await db.executeRunSQL(storeSQL, [
+        quantity,
+        user_id,
+        store_no,
+        item_code,
+      ]);
+
+      message = "success store item";
+    } else {
+      message = "Pigeonhole not found";
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  res.send({ message });
 });
 
 module.exports = app;

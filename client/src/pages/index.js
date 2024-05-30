@@ -5,6 +5,7 @@ import InventoryPage from "./InventoryPage";
 import OrderListPage from "./OrderListPage";
 import RetrievePage from "./RetrievePage";
 import StoreListPage from "./StoreListPage";
+import MapPage from "./MapPage";
 
 export {
   HomePage,
@@ -14,4 +15,5 @@ export {
   OrderListPage,
   RetrievePage,
   StoreListPage,
+  MapPage,
 };
