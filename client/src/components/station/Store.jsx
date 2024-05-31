@@ -235,6 +235,19 @@ const Store = () => {
     setIsBtnActionClick(true);
   };
 
+  const handleNextBtn = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/store/next_store`, {
+        rack: storeData.leastItemsRack,
+        side: storeData.leastItemsSide,
+      });
+
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div>
       {displayStartButton && (
@@ -298,7 +311,7 @@ const Store = () => {
         <Button
           variant="contained"
           color="secondary"
-          // onClick={handleNextBtn}
+          onClick={handleNextBtn}
           style={{ marginRight: 16 }}
         >
           Next

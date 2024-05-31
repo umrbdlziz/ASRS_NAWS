@@ -111,7 +111,7 @@ app.get("/get_store_data", async (req, res) => {
 
   try {
     const { leastItemsRack, leastItemsSide } = await getLeastItemsRackAndSide();
-    fleet("store", leastItemsRack, leastItemsSide);
+    fleet("come", leastItemsRack, leastItemsSide);
     const layout = await getRackLayout(leastItemsRack);
 
     res.send({ layout, leastItemsRack, leastItemsSide });
@@ -203,6 +203,20 @@ app.post("/update_store", async (req, res) => {
     } else {
       message = "Pigeonhole not found";
     }
+  } catch (error) {
+    console.log(error);
+  }
+  res.send({ message });
+});
+
+app.post("/next_store", async (req, res) => {
+  const { rack, side } = req.body;
+  let message = "";
+
+  try {
+    fleet("back", rack, side);
+
+    message = `Rack send back at ${rack}, ${side}`;
   } catch (error) {
     console.log(error);
   }

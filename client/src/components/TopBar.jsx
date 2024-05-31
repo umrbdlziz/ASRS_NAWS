@@ -19,10 +19,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import StoreIcon from "@mui/icons-material/Store";
 import MapIcon from "@mui/icons-material/Map";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
 import { logout } from "./authService";
 import { AuthContext, ServerContext, StationContext } from "../context";
+import NanoIcon from "../assets/NanoIcon.png";
 import axios from "axios";
 
 const TopBar = () => {
@@ -32,7 +32,7 @@ const TopBar = () => {
   const [stations, setStations] = useState([]);
 
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useContext(AuthContext);
+  const { setIsAuthenticated, userInfo } = useContext(AuthContext);
   const { SERVER_URL } = useContext(ServerContext);
   const { setCurrentStation } = useContext(StationContext);
 
@@ -55,6 +55,7 @@ const TopBar = () => {
   }, [SERVER_URL, setCurrentStation]);
 
   const handleMenuOpen = (event) => {
+    event.stopPropagation(); // Prevent event propagation
     setAnchorEl(event.currentTarget);
   };
 
@@ -91,8 +92,20 @@ const TopBar = () => {
 
   return (
     <div>
-      <AppBar position="static">
-        <Toolbar>
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: "transparent",
+          boxShadow: "none",
+        }}
+      >
+        <Toolbar
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <IconButton
             edge="start"
             color="inherit"
@@ -107,8 +120,8 @@ const TopBar = () => {
             label="Select Station"
             value={selectedStation}
             onChange={(e) => setSelectedStation(e.target.value)}
-            margin="normal"
-            style={{ flex: 1, marginRight: 16 }}
+            size="small"
+            style={{ marginRight: 16, width: "200px" }}
           >
             {stations.map((station) => (
               <MenuItem key={station.station_id} value={station.station_id}>
@@ -116,25 +129,9 @@ const TopBar = () => {
               </MenuItem>
             ))}
           </TextField>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton onClick={handleMenuOpen} color="inherit">
-              <Avatar>
-                <AccountCircleIcon />
-              </Avatar>
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              anchorOrigin={{ vertical: "top", horizontal: "right" }}
-              keepMounted
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-            >
-              <MenuItem onClick={handleInfo}>Information</MenuItem>
-              <MenuItem onClick={handleAddUser}>Add User</MenuItem>
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </Menu>
-          </Box>
+          <IconButton edge="end" onClick={() => navigate("/")}>
+            <img src={NanoIcon} alt="NanoIcon" style={{ width: "40px" }} />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
@@ -188,7 +185,36 @@ const TopBar = () => {
           <Divider />
           <List>
             <ListItem>
-              <ListItemText primary={`Version: 1.0.0`} />
+              <ListItemIcon>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <IconButton onClick={handleMenuOpen} color="inherit">
+                    <Avatar sx={{ width: "35px", height: "35px" }} />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                    keepMounted
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem onClick={handleInfo}>Information</MenuItem>
+                    <MenuItem onClick={handleAddUser}>Add User</MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                  </Menu>
+                </Box>
+              </ListItemIcon>
+              <ListItemText
+                primary={userInfo.username}
+                secondary={`role: ${userInfo.role}`}
+              />
+            </ListItem>
+            {/* <ListItem>
+            </ListItem> */}
+          </List>
+          <List>
+            <ListItem>
+              <ListItemText secondary={`Version: 2.0.0`} />
             </ListItem>
           </List>
         </Box>

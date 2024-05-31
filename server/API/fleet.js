@@ -6,9 +6,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.post("/request_fleet", async (req, res) => {
-  const task_type = req.body.task_type;
-  const rack = req.body.rack;
-  const side = req.body.side;
+  const { task_type, rack, side } = req.body;
 
   console.log("Requesting Robot");
   console.log("Task type: ", task_type);
@@ -27,7 +25,7 @@ let mission;
 async function fleet(task_type, rack, side) {
   console.log("Requesting Robot");
   console.log("Task type: ", task_type);
-  console.log("Rack: ", rack);
+  console.log("Rack: ", rack, " Side: ", side);
   // get the robot api to be sent
   const sql_robot = "SELECT * FROM constants WHERE constant = ?";
   const params_robot = "robot api";
@@ -39,101 +37,60 @@ async function fleet(task_type, rack, side) {
     throw new Error("Unable to get robot api");
   }
 
-  if (task_type == "retrieve") {
+  if (task_type == "come") {
     // from station to rack
 
-    if (side === "S1") {
+    if (side === "SA") {
       const data_send = {
-        robot: "nanobot02",
-        mission_tree: [
-          {
-            name: "string",
-            parent: "root",
-            action: {
-              action_type: "fake_fleet",
-              action_parameters: {
-                target_task: "loading_front",
-              },
-            },
-          },
-        ],
-        timeout: 300,
-        deadline: "2022-10-07T00:21:31.112Z",
-        needs_canceled: false,
-        name: mission,
+        task_type: "PSDR",
+        start_time: 0,
+        priority: 0,
+        description: {
+          pick_up_station: { station: "NG_NICC_A1_0" },
+          retrieve_station: { station: "Retrieval_station_1", oreiention: 0 },
+        },
       };
 
       // call the function that will send to robot
       executeRobot(data_send);
-    } else if (side === "S2") {
+    } else if (side === "SB") {
       const data_send = {
-        robot: "nanobot02",
-        mission_tree: [
-          {
-            name: "string",
-            parent: "root",
-            action: {
-              action_type: "fake_fleet",
-              action_parameters: {
-                target_task: "loading_back",
-              },
-            },
-          },
-        ],
-        timeout: 300,
-        deadline: "2022-10-07T00:21:31.112Z",
-        needs_canceled: false,
-        name: mission,
+        task_type: "PSDR",
+        start_time: 0,
+        priority: 0,
+        description: {
+          pick_up_station: { station: "NG_NICC_A1_0" },
+          retrieve_station: { station: "Retrieval_station_1", oreiention: 180 },
+        },
       };
 
       // call the function that will send to robot
       executeRobot(data_send);
     }
-  } else {
+  } else if (task_type == "back") {
     // from rack to station
-
-    if (side === "S1") {
+    if (side === "SA") {
       const data_send = {
-        robot: "nanobot02",
-        mission_tree: [
-          {
-            name: "string",
-            parent: "root",
-            action: {
-              action_type: "fake_fleet",
-              action_parameters: {
-                target_task: "unloading_front",
-              },
-            },
-          },
-        ],
-        timeout: 300,
-        deadline: "2022-10-07T00:21:31.112Z",
-        needs_canceled: false,
-        name: mission,
+        task_type: "RSRS",
+        start_time: 0,
+        priority: 0,
+        description: {
+          retrieve_station: { station: "Retrieval_station_1", oreiention: 0 },
+          storage_station: { station: "NG_NICC_A1_0" },
+        },
       };
 
       // call the function that will send to robot
       executeRobot(data_send);
-    } else if (side === "S2") {
+    } else if (side === "SB") {
       const data_send = {
-        robot: "nanobot02",
-        mission_tree: [
-          {
-            name: "string",
-            parent: "root",
-            action: {
-              action_type: "fake_fleet",
-              action_parameters: {
-                target_task: "unloading_back",
-              },
-            },
-          },
-        ],
-        timeout: 300,
-        deadline: "2022-10-07T00:21:31.112Z",
-        needs_canceled: false,
-        name: mission,
+        task_type: "RSRS",
+        start_time: 0,
+        priority: 0,
+        description: {
+          retrieve_station: { station: "Retrieval_station_1", oreiention: 180 },
+          storage_station: { station: "NG_NICC_A1_0" },
+        },
       };
 
       // call the function that will send to robot
@@ -174,9 +131,9 @@ async function fleetAbort() {
 }
 
 async function executeRobot(data_send) {
-  const api_url = `http://${robot_api}/mission`;
+  const api_url = `http://${robot_api}/submit_task`;
   console.log(`API: ${api_url}`);
-  console.log(data_send.mission_tree[0].action);
+  console.log(data_send);
 
   return;
 
