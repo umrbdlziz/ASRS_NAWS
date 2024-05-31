@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import * as XLSX from "xlsx";
 import {
   DataGrid,
@@ -21,27 +21,31 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 
-const SERVER_URL = "http://192.168.1.48:5001"; // Update this to your actual server URL
+import { ServerContext } from "../context";
+import CustomSnackbar from "../components/utils/CustomSnackbar";
 
 const OrderStoreListPage = () => {
+  const { SERVER_URL } = useContext(ServerContext);
+
   const [orders, setOrders] = useState([]);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [alertImport, setAlertImport] = useState(false);
   const [deleteAlertOrder, setDeleteAlertOrder] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState({});
 
   const columns = [
     { field: "id", headerName: "ID", width: 90 },
-    { field: "customer", headerName: "Customer", width: 150 },
+    // { field: "customer", headerName: "Customer", width: 150 },
     { field: "so_no", headerName: "SO No.", width: 150 },
-    { field: "date", headerName: "Date", width: 150 },
+    // { field: "date", headerName: "Date", width: 150 },
     { field: "item_code", headerName: "Item Code", width: 150 },
-    { field: "item_desc", headerName: "Item Description", width: 200 },
-    { field: "item_quantity", headerName: "Item Quantity", width: 150 },
-    { field: "uom", headerName: "UOM", width: 100 },
+    { field: "item_desc", headerName: "Item Description", width: 400 },
+    { field: "item_quantity", headerName: "Qty", width: 100 },
+    // { field: "uom", headerName: "UOM", width: 100 },
     { field: "status", headerName: "Status", width: 150 },
-    { field: "date_out", headerName: "Date Out", width: 150 },
+    // { field: "date_out", headerName: "Date Out", width: 150 },
     {
       field: "actions",
       headerName: "Actions",
@@ -132,7 +136,18 @@ const OrderStoreListPage = () => {
             }
           );
 
-          console.log(response.data.message);
+          // console.log(response.data.message);
+          if (response.data.message != "success") {
+            setSnackbarMessage({
+              message: response.data.message,
+              severity: "error",
+            });
+          } else {
+            setSnackbarMessage({
+              message: "New list has been successfully added.",
+              severity: "success",
+            });
+          }
           setAlertImport(true);
           handleCloseImportDialog();
           fetchOrders(); // Refresh the orders after upload
@@ -187,7 +202,14 @@ const OrderStoreListPage = () => {
         {/* Add your create order form here */}
       </Dialog>
 
-      <Snackbar
+      <CustomSnackbar
+        open={alertImport}
+        onClose={() => setAlertImport(false)}
+        message={snackbarMessage.message}
+        severity={snackbarMessage.severity}
+      />
+
+      {/* <Snackbar
         open={alertImport}
         autoHideDuration={5000}
         onClose={() => setAlertImport(false)}
@@ -200,7 +222,7 @@ const OrderStoreListPage = () => {
         >
           New list has been successfully added.
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
 
       <Snackbar
         open={deleteAlertOrder}
