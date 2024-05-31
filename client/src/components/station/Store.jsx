@@ -31,6 +31,8 @@ const Store = () => {
   const [dataSend, setDataSend] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState({});
+  const [currStoreList, setCurrStoreList] = useState([]);
+  const [isBtnActionClick, setIsBtnActionClick] = useState(false);
 
   const { SERVER_URL } = useContext(ServerContext);
   const { userInfo } = useContext(AuthContext);
@@ -39,6 +41,23 @@ const Store = () => {
   const pigeonhole_idRef = useRef(null);
 
   useEffect(() => {
+    if (!userInfo) {
+      console.log("userInfo is null");
+    } else {
+      console.log("userInfo:", userInfo.id);
+    }
+  }, [userInfo]);
+
+  useEffect(() => {
+    if (isBtnActionClick) {
+      const enterEvent = new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+      });
+      item_codeRef.current.dispatchEvent(enterEvent);
+      setIsBtnActionClick(false);
+    }
+
     if (isInputOne) {
       document.addEventListener("keydown", handleItemCodeInput);
     } else {
@@ -51,7 +70,7 @@ const Store = () => {
       document.removeEventListener("keydown", handlePigeonholeIdInput);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanItemCode, scanPigeonholeId, isInputOne]);
+  }, [scanItemCode, scanPigeonholeId, isInputOne, isBtnActionClick]);
 
   const handleStartClick = async () => {
     setDisplayStartButton(false);
@@ -72,6 +91,7 @@ const Store = () => {
       );
       console.log("Store data:", response.data);
       setStoreData(response.data);
+      getListItem(store_no);
     } catch (error) {
       console.error("Error fetching store data:", error);
     }
@@ -79,11 +99,22 @@ const Store = () => {
     setOpenDialog(false);
   };
 
+  const getListItem = async (no) => {
+    try {
+      const response = await axios.get(
+        `${SERVER_URL}/store/get_store_list?store_no=${no}`
+      );
+      setCurrStoreList(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleItemCodeInput = async (event) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" || isBtnActionClick) {
       console.log("item code: ", scanItemCode);
 
-      const isItemCodeInStoreList = storeData.storeList.some(
+      const isItemCodeInStoreList = currStoreList.some(
         (item) => item.item_code === scanItemCode
       );
 
@@ -136,8 +167,12 @@ const Store = () => {
       console.log("pigeonhole id: ", scanPigeonholeId);
 
       if (!greenPigeonhole.includes(scanPigeonholeId)) {
-        console.log("Scan wrong pigeonhole");
         setScanPigeonholeId("");
+        setDialogOpen(true);
+        setDialogMessage({
+          title: "Error",
+          content: `Scan wrong pigeonhole(${scanPigeonholeId}).`,
+        });
         return;
       }
 
@@ -149,8 +184,8 @@ const Store = () => {
           pigeonhole_id: scanPigeonholeId,
           user_id: userInfo.id,
         });
-        console.log("Response from update_store:", response.data);
-        handleSuccess();
+
+        handleSuccess(response.data);
       } catch (error) {
         console.log("Error in pigeonhole input:", error);
         handleError();
@@ -174,7 +209,7 @@ const Store = () => {
   const handleSuccess = () => {
     setDialogMessage({
       title: "Success",
-      content: "Store updated successfully.",
+      content: `Store updated successfully at ${scanPigeonholeId}.`,
     });
     setDialogOpen(true);
     setIsInputOne(true);
@@ -183,7 +218,7 @@ const Store = () => {
     setItemData(null);
     setGreenPigeonhole([]);
     if (selectedStoreNo) {
-      handleStoreSelect(selectedStoreNo);
+      getListItem(selectedStoreNo);
     } else {
       console.log("Store number not selected");
     }
@@ -193,6 +228,11 @@ const Store = () => {
     setDialogMessage({ title: "Error", content: "Error updating store." });
     setDialogOpen(true);
     setScanPigeonholeId("");
+  };
+
+  const handleActionClick = (item_code) => {
+    setScanItemCode(item_code);
+    setIsBtnActionClick(true);
   };
 
   return (
@@ -240,7 +280,10 @@ const Store = () => {
               itemData={itemData}
               onQuantitiesChange={handleQuantitiesChange}
             />
-            <ListComponent storeList={storeData.storeList} />
+            <ListComponent
+              storeList={currStoreList}
+              handleActionClick={handleActionClick}
+            />
           </>
         )}
       </Box>

@@ -8,13 +8,24 @@ const { getRackLayout, getLeastItemsRackAndSide } = require("./warehouse");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+// for store list page
 app.get("/get_store_list", async (req, res) => {
-  try {
-    const sql = "SELECT * FROM store";
-    const result = await db.executeAllSQL(sql, []);
-    res.send(result);
-  } catch (error) {
-    console.log(error);
+  if (req.query.store_no) {
+    try {
+      const sql = "SELECT * FROM store WHERE no = ? AND status < item_quantity";
+      const result = await db.executeAllSQL(sql, [req.query.store_no]);
+      res.send(result);
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    try {
+      const sql = "SELECT * FROM store";
+      const result = await db.executeAllSQL(sql, []);
+      res.send(result);
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
 
@@ -88,6 +99,7 @@ app.delete("/delete_store/:id", async (req, res) => {
   res.json({ message: "Order deleted" });
 });
 
+// for station page
 app.get("/get_store_numbers", async (req, res) => {
   const sql = "SELECT DISTINCT no FROM store WHERE status = 0";
   const result = await db.executeAllSQL(sql, []);
@@ -102,11 +114,7 @@ app.get("/get_store_data", async (req, res) => {
     fleet("store", leastItemsRack, leastItemsSide);
     const layout = await getRackLayout(leastItemsRack);
 
-    const storeListSQL =
-      "SELECT * FROM store WHERE no = ? AND status < item_quantity";
-    const storeList = await db.executeAllSQL(storeListSQL, [storeNo]);
-
-    res.send({ layout, leastItemsRack, leastItemsSide, storeList });
+    res.send({ layout, leastItemsRack, leastItemsSide });
   } catch (error) {
     console.log(error);
   }
@@ -174,9 +182,10 @@ app.post("/update_store", async (req, res) => {
 
       // Update the pigeonhole table with the new item_code list
       const updatePigeonholeSQL =
-        "UPDATE pigeonhole SET item_code = ? WHERE pigeonhole_id = ?";
+        "UPDATE pigeonhole SET item_code = ?, date = datetime('now'), user_id = ? WHERE pigeonhole_id = ?";
       await db.executeRunSQL(updatePigeonholeSQL, [
         newItemCodesStr,
+        user_id,
         pigeonhole_id,
       ]);
 

@@ -52,13 +52,28 @@ const ItemDetails = ({ itemData, onQuantitiesChange }) => {
       {itemData &&
         itemData.map((item, index) => (
           <Card key={index} style={{ marginBottom: 16 }}>
-            <CardMedia
-              component="img"
-              alt={item.item_desc}
-              image={`${SERVER_URL}/uploads/${item.item_img}`}
-              title={item.item_desc}
-              style={{ height: 140, objectFit: "contain" }}
-            />
+            {item.item_img === null ? (
+              <Typography
+                variant="body1"
+                style={{
+                  paddingTop: "50px",
+                  paddingBottom: "50px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                No Image Available
+              </Typography>
+            ) : (
+              <CardMedia
+                component="img"
+                alt={item.item_desc}
+                image={`${SERVER_URL}/uploads/${item.item_img}`}
+                title={item.item_desc}
+                style={{ height: 140, objectFit: "contain" }}
+              />
+            )}
             <CardContent>
               <Typography gutterBottom variant="subtitle1" component="div">
                 {item.item_code}

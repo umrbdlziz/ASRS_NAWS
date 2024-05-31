@@ -209,21 +209,6 @@ const OrderStoreListPage = () => {
         severity={snackbarMessage.severity}
       />
 
-      {/* <Snackbar
-        open={alertImport}
-        autoHideDuration={5000}
-        onClose={() => setAlertImport(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setAlertImport(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          New list has been successfully added.
-        </Alert>
-      </Snackbar> */}
-
       <Snackbar
         open={deleteAlertOrder}
         autoHideDuration={5000}

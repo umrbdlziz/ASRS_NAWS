@@ -10,7 +10,7 @@ import {
   Button,
 } from "@mui/material";
 
-const ListComponent = ({ storeList }) => {
+const ListComponent = ({ storeList, handleActionClick }) => {
   return (
     <>
       <input type="text" style={{ display: "none" }} />
@@ -35,7 +35,7 @@ const ListComponent = ({ storeList }) => {
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => {}}
+                    onClick={() => handleActionClick(item.item_code)}
                   >
                     Action
                   </Button>
@@ -54,9 +54,10 @@ ListComponent.propTypes = {
     PropTypes.shape({
       item_desc: PropTypes.string,
       item_quantity: PropTypes.number,
-      item_code: PropTypes.string, // Add item_code to the prop types
+      item_code: PropTypes.string,
     })
   ),
+  handleActionClick: PropTypes.func,
 };
 
 export default ListComponent;
