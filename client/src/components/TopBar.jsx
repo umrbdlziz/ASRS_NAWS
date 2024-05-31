@@ -3,7 +3,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  Typography,
   Menu,
   MenuItem,
   Avatar,
@@ -103,9 +102,6 @@ const TopBar = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            HomePage
-          </Typography>
           <TextField
             select
             label="Select Station"
