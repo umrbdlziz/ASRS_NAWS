@@ -6,6 +6,8 @@ import OrderListPage from "./OrderListPage";
 import StationPage from "./StationPage";
 import StoreListPage from "./StoreListPage";
 import MapPage from "./MapPage";
+import Warehouse from "./Warehouse";
+import Info from "./Info";
 
 export {
   HomePage,
@@ -16,4 +18,6 @@ export {
   StationPage,
   StoreListPage,
   MapPage,
+  Warehouse,
+  Info,
 };

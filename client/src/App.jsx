@@ -14,12 +14,14 @@ import {
   StationPage,
   StoreListPage,
   MapPage,
+  Warehouse,
+  Info,
 } from "./pages";
 import { checkAuth } from "./components/authService";
 import { AuthContext, ServerContext, StationContext } from "./context";
 import TopBar from "./components/TopBar"; // Import your TopBar component
 
-const SERVER_URL = "http://192.168.1.48:5001";
+const SERVER_URL = "http://192.168.9.208:5001";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -103,6 +105,17 @@ const App = () => {
                   isAuthenticated ? <StoreListPage /> : <Navigate to="/login" />
                 }
               />
+              <Route
+                path="/info"
+                element={isAuthenticated ? <Info /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/warehouse"
+                element={
+                  isAuthenticated ? <Warehouse /> : <Navigate to="/login" />
+                }
+              />
+
               {/* <Route path="/" element={<Navigate to="/login" />} /> */}
             </Routes>
           </Router>

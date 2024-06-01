@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -22,9 +22,11 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 
-const SERVER_URL = "http://192.168.1.48:5001";
+import { ServerContext } from "../context";
 
 const UserPage = () => {
+  const { SERVER_URL } = useContext(ServerContext);
+
   const [openNewUser, setOpenNewUser] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);

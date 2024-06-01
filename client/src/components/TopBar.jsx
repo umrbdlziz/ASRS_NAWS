@@ -3,7 +3,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  Menu,
   MenuItem,
   Avatar,
   Box,
@@ -14,11 +13,19 @@ import {
   ListItemText,
   Divider,
   TextField,
+  ListItemButton,
+  Collapse,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import HomeIcon from "@mui/icons-material/Home";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import MenuIcon from "@mui/icons-material/Menu";
 import StoreIcon from "@mui/icons-material/Store";
 import MapIcon from "@mui/icons-material/Map";
+import WarehouseIcon from "@mui/icons-material/Warehouse";
+
 import { useNavigate } from "react-router-dom";
 import { logout } from "./authService";
 import { AuthContext, ServerContext, StationContext } from "../context";
@@ -26,10 +33,10 @@ import NanoIcon from "../assets/NanoIcon.png";
 import axios from "axios";
 
 const TopBar = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedStation, setSelectedStation] = useState("");
   const [stations, setStations] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const navigate = useNavigate();
   const { setIsAuthenticated, userInfo } = useContext(AuthContext);
@@ -54,30 +61,16 @@ const TopBar = () => {
     fetchStations();
   }, [SERVER_URL, setCurrentStation]);
 
-  const handleMenuOpen = (event) => {
-    event.stopPropagation(); // Prevent event propagation
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = async () => {
-    console.log("Logging out");
-    await logout();
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
-
-  const handleInfo = () => {
-    handleMenuClose();
-    navigate("/information"); // Navigate to information page
-  };
-
-  const handleAddUser = () => {
-    handleMenuClose();
-    navigate("/user"); // Navigate to add user page
+  const handleUserClick = async (page) => {
+    if (page === "/logout") {
+      console.log("Logging out");
+      await logout();
+      setIsAuthenticated(false);
+      navigate("/login");
+    } else {
+      setDrawerOpen(false);
+      navigate(page);
+    }
   };
 
   const toggleDrawer = (open) => (event) => {
@@ -141,76 +134,87 @@ const TopBar = () => {
             marginTop: 8,
           }}
           role="presentation"
-          onClick={toggleDrawer(false)}
+          // onClick={toggleDrawer(false)}
           onKeyDown={toggleDrawer(false)}
         >
           <List>
-            <ListItem button onClick={() => navigate("/")}>
+            <ListItem button onClick={() => handleUserClick("/")}>
               <ListItemIcon>
                 <HomeIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Home Page" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/station")}>
+            <ListItem button onClick={() => handleUserClick("/station")}>
               <ListItemIcon>
                 <StoreIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Station" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/map")}>
+            <ListItem button onClick={() => handleUserClick("/map")}>
               <ListItemIcon>
                 <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Live Map" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/inventory")}>
+            <ListItem button onClick={() => handleUserClick("/inventory")}>
               <ListItemIcon>
-                <MapIcon style={{ color: "#EFF1ED" }} />
+                <InventoryIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Inventory list" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/order_list")}>
+            <ListItem button onClick={() => handleUserClick("/order_list")}>
               <ListItemIcon>
-                <MapIcon style={{ color: "#EFF1ED" }} />
+                <LocalShippingIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Order list" />
             </ListItem>
-            <ListItem button onClick={() => navigate("/store_list")}>
+            <ListItem button onClick={() => handleUserClick("/store_list")}>
               <ListItemIcon>
-                <MapIcon style={{ color: "#EFF1ED" }} />
+                <FormatListBulletedIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Store list" />
+            </ListItem>
+            <ListItem button onClick={() => handleUserClick("/warehouse")}>
+              <ListItemIcon>
+                <WarehouseIcon style={{ color: "#EFF1ED" }} />
+              </ListItemIcon>
+              <ListItemText primary="Warehouse" />
             </ListItem>
           </List>
           <Divider />
           <List>
-            <ListItem>
+            <ListItemButton onClick={() => setOpen(!open)}>
               <ListItemIcon>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <IconButton onClick={handleMenuOpen} color="inherit">
-                    <Avatar sx={{ width: "35px", height: "35px" }} />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                    keepMounted
-                    transformOrigin={{ vertical: "top", horizontal: "right" }}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}
-                  >
-                    <MenuItem onClick={handleInfo}>Information</MenuItem>
-                    <MenuItem onClick={handleAddUser}>Add User</MenuItem>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                  </Menu>
-                </Box>
+                <Avatar sx={{ width: "35px", height: "35px" }} />
               </ListItemIcon>
               <ListItemText
                 primary={userInfo.username}
                 secondary={`role: ${userInfo.role}`}
               />
-            </ListItem>
-            {/* <ListItem>
-            </ListItem> */}
+              {open ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  onClick={() => handleUserClick("/info")}
+                  sx={{ pl: 4 }}
+                >
+                  <ListItemText primary="Information" />
+                </ListItemButton>
+                <ListItemButton
+                  onClick={() => handleUserClick("/user")}
+                  sx={{ pl: 4 }}
+                >
+                  <ListItemText primary="User" />
+                </ListItemButton>
+                <ListItemButton
+                  onClick={() => handleUserClick("/logout")}
+                  sx={{ pl: 4 }}
+                >
+                  <ListItemText primary="Logout" />
+                </ListItemButton>
+              </List>
+            </Collapse>
           </List>
           <List>
             <ListItem>
