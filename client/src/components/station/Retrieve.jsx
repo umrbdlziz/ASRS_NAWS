@@ -4,7 +4,8 @@ import { ServerContext, StationContext, AuthContext } from "../../context";
 import Layout from "../Layout";
 import ItemDetails from "../ItemDetails";
 import RetrieveBin from "../RetrieveBin";
-import ScanDialog from "../ScanDialog";
+import CustomeDialog from "../utils/CustomDialog";
+import CustomSnackbar from "../utils/CustomSnackbar";
 
 import axios from "axios";
 
@@ -17,22 +18,30 @@ const Retrieve = () => {
   const secondScanRef = useRef();
 
   const [isInputOne, setIsInputOne] = useState(true);
+  const [isBtnStartDisplay, setIsBtnStartDisplay] = useState(true);
+
   const [layoutData, setLayoutData] = useState({});
   const [displayPigeonhole, setDisplayPigeonhole] = useState(false);
-  const [greenPigeonhole, setGreenPigeonhole] = useState([]);
   const [pigeonhole, setPigeonhole] = useState("");
   const [soNumber, setSoNumber] = useState("");
   const [itemData, setItemData] = useState(null);
   const [bin, setBin] = useState("");
   const [dataSend, setDataSend] = useState([]);
   const [retrieveRack, setRetrieveRack] = useState({});
+  const [greenPigeonhole, setGreenPigeonhole] = useState([]);
   const [greenBin, setGreenBin] = useState({});
+
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState({});
+
   const [currRack, setCurrRack] = useState("");
   const [currSide, setCurrSide] = useState("");
 
   useEffect(() => {
+    if (!userInfo) {
+      console.log("User not logged in");
+    }
+
     if (isInputOne) {
       document.addEventListener("keydown", handleFirstScan);
     } else {
@@ -52,11 +61,20 @@ const Retrieve = () => {
       alert("Please select a station");
       return;
     } else {
-      console.log("Station:", currentStation[0].station_id);
       try {
         const response = await axios.get(
           `${SERVER_URL}/retrieve/get_retrieve?station_id=${currentStation[0].station_id}&user=${userInfo.id}`
         );
+
+        if (response.data.message === "No item in pigeonhole") {
+          setDialogOpen(true);
+          setDialogMessage({
+            title: "Error",
+            content: "No item in pigeonhole",
+          });
+          return;
+        }
+
         console.log(response.data);
         setLayoutData(response.data.layout);
         setDisplayPigeonhole(true);
@@ -76,9 +94,16 @@ const Retrieve = () => {
 
         // Set the array to setGreenPigeonhole
         setGreenPigeonhole(pigeonholeArray);
+        getGreenPigeonhole(
+          Object.keys(response.data.pigeonhole[soNumber])[0].split("-")[0],
+          Object.keys(response.data.pigeonhole[soNumber])[0].split("-")[1],
+          soNumber
+        );
         firstScanRef.current.focus();
       } catch (error) {
         console.error("Error retrieving order:", error);
+        setDialogOpen(true);
+        setDialogMessage({ title: "Error", content: "No item in pigeonhole" });
       }
 
       try {
@@ -89,12 +114,35 @@ const Retrieve = () => {
       } catch (error) {
         console.log(error);
       }
+      setIsBtnStartDisplay(false);
+    }
+  };
+
+  const getGreenPigeonhole = async (rack, side, so_no) => {
+    try {
+      const response = await axios.get(
+        `${SERVER_URL}/retrieve/get_green_pigeonhole?rack=${rack}&side=${side}&so_no=${so_no}`
+      );
+      console.log("Green pigeonhole:", response.data);
+      setGreenPigeonhole(response.data);
+    } catch (error) {
+      console.log("Error getting green pigeonhole:", error);
     }
   };
 
   const handleFirstScan = async (event) => {
     if (event.key === "Enter") {
-      console.log("Pigeonhole:", pigeonhole);
+      console.log("Pigeonhole:", pigeonhole, greenPigeonhole);
+      if (!greenPigeonhole.includes(pigeonhole)) {
+        setDialogMessage({
+          title: "Error",
+          content: `Wrong pigeonhole(${pigeonhole})`,
+        });
+        setDialogOpen(true);
+        setPigeonhole("");
+        return;
+      }
+
       try {
         const response = await axios.post(`${SERVER_URL}/retrieve/get_item`, {
           so_number: soNumber,
@@ -133,30 +181,22 @@ const Retrieve = () => {
   const handleSecondScan = async (event) => {
     if (event.key === "Enter") {
       if (bin != greenBin.bin_id) {
-        setDialogMessage(false);
+        setDialogMessage({ title: "Error", content: `Wrong bin(${bin})` });
         setDialogOpen(true);
       } else {
         try {
-          const response = await axios.post(
-            `${SERVER_URL}/retrieve/update_retrieve`,
-            {
-              dataSend: dataSend,
-              so_number: soNumber,
-              pigeonholeId: pigeonhole,
-            }
-          );
+          await axios.post(`${SERVER_URL}/retrieve/update_retrieve`, {
+            dataSend: dataSend,
+            so_number: soNumber,
+            pigeonholeId: pigeonhole,
+          });
 
-          console.log("Success:", response.data);
-          setDialogMessage(true);
-          setDialogOpen(true);
-          setIsInputOne(true);
+          handleSuccess();
         } catch (error) {
           console.error("Error getting item:", error);
+          setBin("");
         }
       }
-      setBin("");
-      setPigeonhole("");
-      firstScanRef.current.focus();
     } else if (event.key === "Backspace") {
       setBin(bin.slice(0, -1));
     } else if (
@@ -167,6 +207,26 @@ const Retrieve = () => {
     ) {
       setBin(bin + event.key);
     }
+  };
+
+  const handleSuccess = async () => {
+    setDialogMessage({
+      title: "Success",
+      content: `Item retrieved {${pigeonhole}}`,
+    });
+    setDialogOpen(true);
+
+    getGreenPigeonhole(currRack, currSide, soNumber);
+    setGreenBin({});
+
+    setItemData(null);
+
+    setDialogMessage({});
+    setDialogOpen(true);
+
+    setIsInputOne(true);
+    setBin("");
+    setPigeonhole("");
   };
 
   const handleQuantitiesChange = (updatedQuantities) => {
@@ -184,32 +244,18 @@ const Retrieve = () => {
     console.log("Complete button clicked");
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-  };
-
-  const handleRetry = () => {
-    setDialogOpen(false);
-    secondScanRef.current.focus();
-  };
-
-  const handleCompleteDialog = () => {
-    setDialogOpen(false);
-    firstScanRef.current.focus();
-    setGreenBin({});
-    setItemData(null);
-  };
-
   return (
     <>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleStart}
-        style={{ height: "56px" }}
-      >
-        Start
-      </Button>
+      {isBtnStartDisplay && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleStart}
+          style={{ height: "56px" }}
+        >
+          Start
+        </Button>
+      )}
       <Box display="flex" justifyContent="space-between" marginX={2}>
         <>
           {displayPigeonhole && (
@@ -225,12 +271,12 @@ const Retrieve = () => {
               <ItemDetails
                 itemData={itemData}
                 onQuantitiesChange={handleQuantitiesChange}
-              ></ItemDetails>
+              />
               <RetrieveBin
                 row={retrieveRack.row}
                 column={retrieveRack.column}
                 greenBin={greenBin}
-              ></RetrieveBin>
+              />
             </>
           )}
         </>
@@ -270,13 +316,24 @@ const Retrieve = () => {
           Complete
         </Button>
       </Box>
-      <ScanDialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        onRetry={handleRetry}
-        onComplete={handleCompleteDialog}
-        message={dialogMessage}
-      />
+      {dialogMessage.title == "Success" ? (
+        <CustomSnackbar
+          open={dialogOpen}
+          onClose={() => {
+            setDialogOpen(false);
+          }}
+          message={dialogMessage.content}
+        />
+      ) : (
+        <CustomeDialog
+          open={dialogOpen}
+          onClose={() => {
+            setDialogOpen(false);
+          }}
+          onComplete={() => setDialogOpen(false)}
+          message={dialogMessage}
+        />
+      )}
     </>
   );
 };

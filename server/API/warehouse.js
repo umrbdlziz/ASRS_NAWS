@@ -76,4 +76,44 @@ async function getLeastItemsRackAndSide() {
   }
 }
 
-module.exports = { getRackLayout, getLeastItemsRackAndSide };
+async function getPigeonholeId(orderResult) {
+  const tempData = {};
+  for (let order of orderResult) {
+    const pigeonholeSQL = "SELECT * FROM pigeonhole WHERE item_code LIKE ?";
+    const pigeonholeResult = await db.executeGetSQL(pigeonholeSQL, [
+      `%${order.item_code}%`,
+    ]);
+
+    if (pigeonholeResult) {
+      // Split the item_code string into an array and count the occurrences of each item code
+      const itemCodes = pigeonholeResult.item_code.split(",");
+      const itemCount = itemCodes.reduce((acc, code) => {
+        acc[code] = (acc[code] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Check if the quantity in the order matches the count of the item code in the pigeonhole
+      if (itemCount[order.item_code] >= order.item_quantity) {
+        // Split the pigeonhole_id into an array
+        const pigeonholeIdParts = pigeonholeResult.pigeonhole_id.split("-");
+
+        // Get the first two parts
+        const part1 = pigeonholeIdParts[0]; // "R1"
+        const part2 = pigeonholeIdParts[1]; // "S1"
+
+        // Create a key from part1 and part2
+        const key = `${part1}-${part2}`;
+
+        // If the key already exists, append the pigeonhole_id to the existing array
+        // If it doesn't exist, create a new array with the pigeonhole_id
+        tempData[key] = tempData[key]
+          ? [...tempData[key], pigeonholeResult.pigeonhole_id]
+          : [pigeonholeResult.pigeonhole_id];
+      }
+    }
+  }
+
+  return tempData;
+}
+
+module.exports = { getRackLayout, getLeastItemsRackAndSide, getPigeonholeId };

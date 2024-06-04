@@ -1,13 +1,14 @@
 const express = require("express");
 const app = express();
 const db = require("../models/connectdb");
-const { getRackLayout } = require("./warehouse");
+const { getRackLayout, getPigeonholeId } = require("./warehouse");
 const { fleet } = require("./fleet");
 const { removeItemCodes } = require("./item");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+// for order list page
 app.get("/all_orders", async (req, res) => {
   const sql = "SELECT * FROM retrieve";
   const result = await db.executeAllSQL(sql, []);
@@ -15,7 +16,7 @@ app.get("/all_orders", async (req, res) => {
 });
 
 app.post("/add_order", async (req, res) => {
-  let message = "uploaded successfully";
+  let message = "success";
   const orderlist = req.body.slice(4);
 
   // to get customer in csv
@@ -84,9 +85,11 @@ app.delete("/delete_order/:id", async (req, res) => {
   res.json({ message: "Order deleted" });
 });
 
+// for station page
 app.get("/get_retrieve", async (req, res) => {
   const { station_id, user } = req.query;
   let pigeonhole = {};
+  let emptyPigeonhole = true;
   let layout = {};
   let storage = {};
   let message = "";
@@ -95,71 +98,67 @@ app.get("/get_retrieve", async (req, res) => {
   const stationSQL = "SELECT type FROM station WHERE station_id = ?";
   const stationResult = await db.executeGetSQL(stationSQL, [station_id]);
 
-  // get order list
-  const numberSQL = "SELECT DISTINCT so_no FROM retrieve WHERE status = 0";
-  const numberResult = await db.executeAllSQL(numberSQL, []);
-
   if (stationResult.type === "pigeonhole") {
+    // get order list
+    const numberSQL = "SELECT DISTINCT so_no FROM retrieve WHERE status = 0";
+    const numberResult = await db.executeAllSQL(numberSQL, []);
+
     for (let number of numberResult) {
       const orderSQL = "SELECT * FROM retrieve WHERE so_no = ? AND status = 0";
       const orderResult = await db.executeAllSQL(orderSQL, [number.so_no]);
 
-      let counter = 0;
-      let tempData = {};
+      pigeonhole[number.so_no] = await getPigeonholeId(orderResult);
+    }
 
-      for (let order of orderResult) {
-        const pigeonholeSQL = "SELECT * FROM pigeonhole WHERE item_code LIKE ?";
-        const pigeonholeResult = await db.executeGetSQL(pigeonholeSQL, [
-          `%${order.item_code}%`,
-        ]);
-
-        if (pigeonholeResult) {
-          // Split the item_code string into an array and count the occurrences of each item code
-          const itemCodes = pigeonholeResult.item_code.split(",");
-          const itemCount = itemCodes.reduce((acc, code) => {
-            acc[code] = (acc[code] || 0) + 1;
-            return acc;
-          }, {});
-
-          // Check if the quantity in the order matches the count of the item code in the pigeonhole
-          if (itemCount[order.item_code] >= order.item_quantity) {
-            // Split the pigeonhole_id into an array
-            const pigeonholeIdParts = pigeonholeResult.pigeonhole_id.split("-");
-
-            // Get the first two parts
-            const part1 = pigeonholeIdParts[0]; // "R1"
-            const part2 = pigeonholeIdParts[1]; // "S1"
-
-            // Create a key from part1 and part2
-            const key = `${part1}-${part2}`;
-
-            // If the key already exists, append the pigeonhole_id to the existing array
-            // If it doesn't exist, create a new array with the pigeonhole_id
-            tempData[key] = tempData[key]
-              ? [...tempData[key], pigeonholeResult.pigeonhole_id]
-              : [pigeonholeResult.pigeonhole_id];
-
-            counter++;
-          }
-        }
+    // to check if there is any pigeonhole available
+    for (let so in pigeonhole) {
+      if (Object.keys(pigeonhole[so]).length !== 0) {
+        emptyPigeonhole = false;
+        break;
       }
+    }
 
-      // Check if all the item_code in a so_no are in the pigeonhole
-      if (counter === orderResult.length) {
-        pigeonhole[number.so_no] = tempData;
-
-        for (let rack in tempData) {
-          const [rack_id, side] = rack.split("-");
-          fleet("retrieve", rack_id, side);
-          layout = await getRackLayout(rack_id);
-          layout === "undefined" && (message = "Rack layout not found");
-          break;
-        }
+    // get the pigeonhole layout
+    for (let so in pigeonhole) {
+      if (Object.keys(pigeonhole[so])[0]) {
+        const [rack, side] = Object.keys(pigeonhole[so])[0].split("-");
+        fleet("retrieve", rack, side);
+        layout = await getRackLayout(rack);
+        layout === "undefined" && (message = "Rack layout not found");
+        break;
+      } else {
+        continue;
       }
     }
   }
 
-  res.json({ pigeonhole, layout, message, storage });
+  if (emptyPigeonhole) {
+    res.send({ message: "No item in pigeonhole" });
+  } else {
+    res.send({ pigeonhole, layout, message, storage });
+  }
+});
+
+app.get("/get_green_pigeonhole", async (req, res) => {
+  const { rack, side, so_no } = req.query;
+  let data = [];
+
+  try {
+    const orderSQL = "SELECT * FROM retrieve WHERE so_no = ? AND status = 0";
+    const orderResult = await db.executeAllSQL(orderSQL, [so_no]);
+
+    const rackSide = await getPigeonholeId(orderResult);
+    for (let so in rackSide) {
+      if (so == `${rack}-${side}`) {
+        data = rackSide[so];
+        break;
+      }
+    }
+  } catch (error) {
+    console.log("Error getting green pigeonhole:", error);
+  }
+
+  res.json(data);
 });
 
 app.post("/get_item", async (req, res) => {
