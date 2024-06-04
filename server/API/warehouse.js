@@ -116,4 +116,58 @@ async function getPigeonholeId(orderResult) {
   return tempData;
 }
 
-module.exports = { getRackLayout, getLeastItemsRackAndSide, getPigeonholeId };
+// for warehouse page
+app.get("/all_pattern", async (req, res) => {
+  try {
+    const patternSQL = "SELECT * FROM pattern";
+    const patternResult = await db.executeAllSQL(patternSQL, []);
+    res.send(patternResult);
+  } catch (error) {
+    console.log("Error in /all_pattern:", error);
+  }
+});
+
+app.delete("/delete_pattern", async (req, res) => {
+  const { pattern } = req.body;
+  try {
+    const deleteSQL = "DELETE FROM pattern WHERE pattern_id = ?";
+    const deleteResult = await db.executeRunSQL(deleteSQL, [pattern]);
+    res.send(deleteResult);
+  } catch (error) {
+    console.log("Error in /delete_pattern:", error);
+  }
+});
+
+app.post("/add_pattern", async (req, res) => {
+  const { pattern_id, pattern } = req.body;
+  try {
+    const insertOrUpdateSQL =
+      "INSERT OR REPLACE INTO pattern (pattern_id, pattern) VALUES (?, ?)";
+    const result = await db.executeRunSQL(insertOrUpdateSQL, [
+      pattern_id,
+      pattern,
+    ]);
+    res.send(result);
+  } catch (error) {
+    console.log("Error in /add_pattern:", error);
+  }
+});
+
+app.get("/pattern", async (req, res) => {
+  const { pattern_id } = req.query;
+
+  try {
+    const patternSQL = "SELECT * FROM pattern WHERE pattern_id = ?";
+    const patternResult = await db.executeGetSQL(patternSQL, pattern_id);
+    res.send(patternResult);
+  } catch (error) {
+    console.log("Error in /pattern:", error);
+  }
+});
+
+module.exports = {
+  getRackLayout,
+  getLeastItemsRackAndSide,
+  getPigeonholeId,
+  app,
+};
