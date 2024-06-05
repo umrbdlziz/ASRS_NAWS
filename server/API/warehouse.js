@@ -117,7 +117,7 @@ async function getPigeonholeId(orderResult) {
 }
 
 // for warehouse page
-app.get("/all_pattern", async (req, res) => {
+app.get("/all_patterns", async (req, res) => {
   try {
     const patternSQL = "SELECT * FROM pattern";
     const patternResult = await db.executeAllSQL(patternSQL, []);
@@ -127,19 +127,83 @@ app.get("/all_pattern", async (req, res) => {
   }
 });
 
+app.get("/all_racks", async (req, res) => {
+  try {
+    const rackSQL = "SELECT * FROM rack";
+    const rackResult = await db.executeAllSQL(rackSQL, []);
+    res.send(rackResult);
+  } catch (error) {
+    console.log("Error in /all_rack:", error);
+  }
+});
+
+app.get("/all_bins", async (req, res) => {
+  try {
+    const binSQL = "SELECT * FROM retrieve_bin";
+    const binResult = await db.executeAllSQL(binSQL, []);
+    res.send(binResult);
+  } catch (error) {
+    console.log("Error in /all_bin:", error);
+  }
+});
+
+app.get("/all_retrieve_racks", async (req, res) => {
+  try {
+    const retrieveRackSQL = "SELECT * FROM retrieve_rack";
+    const retrieveRackResult = await db.executeAllSQL(retrieveRackSQL, []);
+    res.send(retrieveRackResult);
+  } catch (error) {
+    console.log("Error in /all_retrieve_rack:", error);
+  }
+});
+
 app.delete("/delete_pattern", async (req, res) => {
-  const { pattern } = req.body;
+  const { id } = req.body;
   try {
     const deleteSQL = "DELETE FROM pattern WHERE pattern_id = ?";
-    const deleteResult = await db.executeRunSQL(deleteSQL, [pattern]);
+    const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
     res.send(deleteResult);
   } catch (error) {
     console.log("Error in /delete_pattern:", error);
   }
 });
 
+app.delete("/delete_rack", async (req, res) => {
+  const { id } = req.body;
+  try {
+    const deleteSQL = "DELETE FROM rack WHERE rack_id = ?";
+    const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
+    res.send(deleteResult);
+  } catch (error) {
+    console.log("Error in /delete_rack:", error);
+  }
+});
+
+app.delete("/delete_retrieveRack", async (req, res) => {
+  const { id } = req.body;
+  try {
+    const deleteSQL = "DELETE FROM retrieve_rack WHERE retrieve_rack_id = ?";
+    const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
+    res.send(deleteResult);
+  } catch (error) {
+    console.log("Error in /delete_retrieveRack:", error);
+  }
+});
+
+app.delete("/delete_bin", async (req, res) => {
+  const { id } = req.body;
+  try {
+    const deleteSQL = "DELETE FROM retrieve_bin WHERE bin_id = ?";
+    const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
+    res.send(deleteResult);
+  } catch (error) {
+    console.log("Error in /delete_bin:", error);
+  }
+});
+
 app.post("/add_pattern", async (req, res) => {
   const { pattern_id, pattern } = req.body;
+
   try {
     const insertOrUpdateSQL =
       "INSERT OR REPLACE INTO pattern (pattern_id, pattern) VALUES (?, ?)";
@@ -150,6 +214,59 @@ app.post("/add_pattern", async (req, res) => {
     res.send(result);
   } catch (error) {
     console.log("Error in /add_pattern:", error);
+  }
+});
+
+app.post("/add_rack", async (req, res) => {
+  const { rack_id, pattern_id } = req.body;
+  try {
+    const insertOrUpdateSQL =
+      "INSERT OR REPLACE INTO rack (rack_id, pattern, x, y, z, yaw, is_available) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const result = await db.executeRunSQL(insertOrUpdateSQL, [
+      rack_id,
+      pattern_id,
+      0,
+      0,
+      100,
+      0,
+      1,
+    ]);
+    res.send(result);
+  } catch (error) {
+    console.log("Error in /add_rack:", error);
+  }
+});
+
+app.post("/add_retrieveRack", async (req, res) => {
+  const { retrieve_rack_id, row, column } = req.body;
+  try {
+    const insertOrUpdateSQL =
+      "INSERT OR REPLACE INTO retrieve_rack (retrieve_rack_id, row, column) VALUES (?, ?, ?)";
+    const result = await db.executeRunSQL(insertOrUpdateSQL, [
+      retrieve_rack_id,
+      row,
+      column,
+    ]);
+    res.send(result);
+  } catch (error) {
+    console.log("Error in /add_rack:", error);
+  }
+});
+
+app.post("/add_bin", async (req, res) => {
+  const { bin_id, so_no, position, station } = req.body;
+  try {
+    const insertOrUpdateSQL =
+      "INSERT OR REPLACE INTO retrieve_bin (bin_id, so_no, position, station_id) VALUES (?, ?, ?, ?)";
+    const result = await db.executeRunSQL(insertOrUpdateSQL, [
+      bin_id,
+      so_no,
+      position,
+      station,
+    ]);
+    res.send(result);
+  } catch (error) {
+    console.log("Error in /add_rack:", error);
   }
 });
 

@@ -283,4 +283,15 @@ app.post("/update_retrieve", async (req, res) => {
   }
 });
 
+// for warehouse page
+app.get("/all_so_no", async (req, res) => {
+  try {
+    const soNoSQL = "SELECT DISTINCT so_no FROM retrieve";
+    const soNoResult = await db.executeAllSQL(soNoSQL, []);
+    res.send(soNoResult);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = app;
