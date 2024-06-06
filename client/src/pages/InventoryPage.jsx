@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -6,9 +6,8 @@ import {
   DialogActions,
   Button,
   Box,
-  Alert,
-  Snackbar,
   IconButton,
+  TextField,
 } from "@mui/material";
 import {
   DataGrid,
@@ -18,10 +17,14 @@ import {
   GridToolbarColumnsButton,
 } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from "@mui/icons-material/Save";
 import axios from "axios";
 import * as XLSX from "xlsx";
 
 import { ServerContext } from "../context";
+import ImageUpload from "../components/inventory/ImageUpload";
+import CustomSnackbar from "../components/utils/CustomSnackbar";
+import LoadingSpinner from "../components/utils/LoadingSpinner";
 
 const InventoryPage = () => {
   const { SERVER_URL } = useContext(ServerContext);
@@ -30,40 +33,64 @@ const InventoryPage = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [alertImport, setAlertImport] = useState(false);
-  const [deleteAlertOrder, setDeleteAlertOrder] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // create item state
+  const [itemCode, setItemCode] = useState("");
+  const [itemDesc, setItemDesc] = useState("");
+  const [itemImg, setItemImg] = useState("");
+  const [errorMessage, setErrorMessage] = useState(false);
+
+  // image upload state
+  const [imgDialog, setImgDialog] = useState(false);
+
+  // custom snackbar state
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState({
+    message: "",
+    severity: "success",
+  });
 
   const columns = [
-    { field: "item_code", headerName: "Item Code", width: 150 },
-    { field: "item_desc", headerName: "Item Desc", width: 600 },
-    { field: "item_image", headerName: "Image", width: 150 },
+    { field: "item_code", headerName: "Item Code", width: 150, editable: true },
+    { field: "item_desc", headerName: "Item Desc", width: 600, editable: true },
+    { field: "quantity", headerName: "Qty", width: 100 },
+    { field: "item_img", headerName: "Image", width: 150, editable: true },
     {
       field: "actions",
       headerName: "Actions",
       width: 100,
       renderCell: (params) => (
-        <IconButton
-          color="secondary"
-          onClick={() => handleDeleteOrder(params.row.id)}
-        >
-          <DeleteIcon />
-        </IconButton>
+        <>
+          <IconButton
+            color="secondary"
+            onClick={() => handleDeleteItem(params.row.item_code)}
+          >
+            <DeleteIcon />
+          </IconButton>
+          <IconButton
+            color="secondary"
+            onClick={() => handleEditItem(params.row)}
+          >
+            <SaveIcon />
+          </IconButton>
+        </>
       ),
     },
   ];
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get(`${SERVER_URL}/item/get_all_items`);
       setInventory(response.data);
     } catch (error) {
       console.error("Error fetching inventory:", error);
     }
-  };
+  }, [setInventory, SERVER_URL]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleOpenImportDialog = () => {
     setImportDialogOpen(true);
@@ -74,25 +101,48 @@ const InventoryPage = () => {
     setSelectedFile(null);
   };
 
-  const handleOpenCreateDialog = () => {
-    setCreateDialogOpen(true);
-  };
-
-  const handleCloseCreateDialog = () => {
-    setCreateDialogOpen(false);
-  };
-
-  const handleDeleteOrder = async (orderId) => {
+  const handleDeleteItem = async (item_code) => {
     try {
       const result = await axios.delete(
-        `${SERVER_URL}/retrieve/delete_order/${orderId}`
+        `${SERVER_URL}/item/delete_item/${item_code}`
       );
 
-      console.log(result.data.message);
+      setSnackbarMessage({
+        message: result.data.message,
+        severity: "success",
+      });
+      setOpenSnackbar(true);
       fetchOrders();
-      setDeleteAlertOrder(true); // Show alert when user is deleted
     } catch (error) {
       console.error("Failed to delete user:", error);
+    }
+  };
+
+  const handleEditItem = async (data) => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/item/update_item`, {
+        item_code: data.item_code,
+        item_desc: data.item_desc,
+        item_img: data.item_img,
+      });
+
+      if (response.data.message !== "1 Item updated successfully") {
+        setSnackbarMessage({
+          message: "Error updating the item",
+          severity: "error",
+        });
+        setOpenSnackbar(true);
+        return;
+      }
+
+      setSnackbarMessage({
+        message: response.data.message,
+        severity: "success",
+      });
+      setOpenSnackbar(true);
+      fetchOrders();
+    } catch (error) {
+      console.error("Error editing item:", error);
     }
   };
 
@@ -102,6 +152,8 @@ const InventoryPage = () => {
 
   const handleFileUpload = async () => {
     if (selectedFile) {
+      setIsLoading(true);
+      handleCloseImportDialog();
       const reader = new FileReader();
       reader.readAsBinaryString(selectedFile);
 
@@ -127,12 +179,16 @@ const InventoryPage = () => {
             }
           );
 
-          console.log(response.data.message);
-          setAlertImport(true);
-          handleCloseImportDialog();
+          setSnackbarMessage({
+            message: response.data.message,
+            severity: "success",
+          });
+          setOpenSnackbar(true);
           fetchOrders(); // Refresh the orders after upload
         } catch (error) {
           console.error("Error uploading file:", error);
+        } finally {
+          setIsLoading(false); // Set loading to false when the upload is done
         }
       };
     } else {
@@ -140,94 +196,181 @@ const InventoryPage = () => {
     }
   };
 
+  const handleCreateItem = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/item/create_item`, {
+        item_code: itemCode,
+        item_desc: itemDesc,
+        item_img: itemImg,
+      });
+
+      if (response.data.message === "Item already exists") {
+        setErrorMessage(true);
+        setSnackbarMessage({
+          message: "Item already exists",
+          severity: "error",
+        });
+        setOpenSnackbar(true);
+        return;
+      }
+
+      fetchOrders();
+      setSnackbarMessage({
+        message: response.data.message,
+        severity: "success",
+      });
+      setOpenSnackbar(true);
+      setCreateDialogOpen(false);
+      setErrorMessage(false);
+      setItemCode("");
+      setItemDesc("");
+      setItemImg("");
+    } catch (error) {
+      console.error("Error creating item:", error);
+    }
+  };
+
   return (
-    <div style={{ height: "85vh", width: "100%" }}>
-      <Box sx={{ mb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenImportDialog}
-          sx={{ mr: 2 }}
-        >
-          Import Inventory
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenCreateDialog}
-        >
-          Create Inventory
-        </Button>
-      </Box>
+    <div style={{ width: "100%" }}>
+      {isLoading ? (
+        <LoadingSpinner text="IF THE FILE IS LARGE NEED MORE TIME TO UPLOAD" />
+      ) : (
+        <>
+          <Box sx={{ mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenImportDialog}
+              sx={{ mr: 2 }}
+            >
+              Import Inventory
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setCreateDialogOpen(true)}
+              sx={{ mr: 2 }}
+            >
+              Create Inventory
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setImgDialog(true)}
+              sx={{ mr: 2 }}
+            >
+              Upload Images
+            </Button>
+          </Box>
 
-      <DataGrid
-        rows={inventory}
-        columns={columns}
-        getRowId={(row) => row.item_code}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 15,
-            },
-          },
-        }}
-        pageSizeOptions={[15, 25, 50]}
-        components={{
-          Toolbar: CustomToolbar,
-        }}
-      />
+          <DataGrid
+            rows={inventory}
+            columns={columns}
+            getRowId={(row) => row.item_code}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 15,
+                },
+              },
+            }}
+            pageSizeOptions={[15, 25, 50]}
+            components={{
+              Toolbar: CustomToolbar,
+            }}
+          />
 
-      {/* Dialog for import Inventory */}
-      <Dialog open={importDialogOpen} onClose={handleCloseImportDialog}>
-        <DialogTitle>Import Inventory</DialogTitle>
-        <DialogContent>
-          <input type="file" accept=".csv, .xlsx" onChange={handleFileChange} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseImportDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleFileUpload} color="secondary">
-            Done
-          </Button>
-        </DialogActions>
-      </Dialog>
+          {/* Dialog for import Inventory */}
+          <Dialog open={importDialogOpen} onClose={handleCloseImportDialog}>
+            <DialogTitle>Import Inventory</DialogTitle>
+            <DialogContent>
+              <input
+                type="file"
+                accept=".csv, .xlsx"
+                onChange={handleFileChange}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseImportDialog} color="secondary">
+                Cancel
+              </Button>
+              <Button onClick={handleFileUpload} color="secondary">
+                Done
+              </Button>
+            </DialogActions>
+          </Dialog>
 
-      {/* Dialog for create Inventory */}
-      <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
-        <DialogTitle>Create Inventory</DialogTitle>
-        {/* Add your create Inventory form here */}
-      </Dialog>
+          {/* Dialog for create Inventory */}
+          <Dialog
+            open={createDialogOpen}
+            onClose={() => setCreateDialogOpen(false)}
+          >
+            <DialogTitle>Create Inventory</DialogTitle>
+            <DialogContent>
+              {errorMessage ? (
+                <TextField
+                  error
+                  helperText="Item code already exist"
+                  margin="dense"
+                  label="Item Code"
+                  variant="outlined"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  value={itemCode}
+                  onChange={(e) => setItemCode(e.target.value)}
+                />
+              ) : (
+                <TextField
+                  margin="dense"
+                  label="Item Code"
+                  variant="outlined"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  value={itemCode}
+                  onChange={(e) => setItemCode(e.target.value)}
+                />
+              )}
+              <TextField
+                label="Item Description"
+                variant="outlined"
+                fullWidth
+                sx={{ mb: 2 }}
+                value={itemDesc}
+                onChange={(e) => setItemDesc(e.target.value)}
+              />
+              <TextField
+                label="Image name"
+                variant="outlined"
+                fullWidth
+                sx={{ mb: 2 }}
+                value={itemImg}
+                onChange={(e) => setItemImg(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setCreateDialogOpen(false)}
+                color="secondary"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCreateItem} color="secondary">
+                Done
+              </Button>
+            </DialogActions>
+          </Dialog>
 
-      <Snackbar
-        open={alertImport}
-        autoHideDuration={5000}
-        onClose={() => setAlertImport(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setAlertImport(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          New list has been successfully added.
-        </Alert>
-      </Snackbar>
+          {/** Image Upload Dialog */}
+          <ImageUpload open={imgDialog} onClose={() => setImgDialog(false)} />
 
-      <Snackbar
-        open={deleteAlertOrder}
-        autoHideDuration={5000}
-        onClose={() => setDeleteAlertOrder(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setDeleteAlertOrder(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          The item has been successfully deleted.
-        </Alert>
-      </Snackbar>
+          <CustomSnackbar
+            open={openSnackbar}
+            onClose={() => setOpenSnackbar(false)}
+            message={snackbarMessage.message}
+            severity={snackbarMessage.severity}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -80,9 +80,14 @@ app.post("/add_order", async (req, res) => {
 
 app.delete("/delete_order/:id", async (req, res) => {
   const id = req.params.id;
-  const sql = "DELETE FROM retrieve WHERE id = ?";
-  await db.executeRunSQL(sql, [id]);
-  res.json({ message: "Order deleted" });
+  try {
+    const sql = "DELETE FROM retrieve WHERE id = ?";
+    const response = await db.executeRunSQL(sql, [id]);
+    console.log(response);
+    res.json({ message: `${response.changes} Order deleted` });
+  } catch (error) {
+    console.log("Error deleting order:", error);
+  }
 });
 
 // for station page
