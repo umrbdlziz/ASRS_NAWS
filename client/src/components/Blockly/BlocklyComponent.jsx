@@ -111,7 +111,7 @@ const BlocklyComponent = ({ handlePatternSave, children }) => {
       </xml>
       <div style={{ padding: "16px" }}>
         <Button variant="contained" color="primary" onClick={generateCode}>
-          Generate Code
+          Generate Pigeonhole
         </Button>
       </div>
     </div>

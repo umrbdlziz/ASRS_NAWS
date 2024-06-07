@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import * as XLSX from "xlsx";
 import {
   DataGrid,
@@ -17,6 +17,7 @@ import {
   Alert,
   Snackbar,
   IconButton,
+  Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
@@ -37,15 +38,15 @@ const OrderStoreListPage = () => {
 
   const columns = [
     { field: "id", headerName: "ID", width: 90 },
-    // { field: "customer", headerName: "Customer", width: 150 },
+    { field: "customer", headerName: "Customer", width: 150 },
     { field: "so_no", headerName: "SO No.", width: 150 },
-    // { field: "date", headerName: "Date", width: 150 },
+    { field: "date", headerName: "Date", width: 150 },
     { field: "item_code", headerName: "Item Code", width: 150 },
     { field: "item_desc", headerName: "Item Description", width: 400 },
     { field: "item_quantity", headerName: "Qty", width: 100 },
-    // { field: "uom", headerName: "UOM", width: 100 },
+    { field: "uom", headerName: "UOM", width: 100 },
     { field: "status", headerName: "Status", width: 150 },
-    // { field: "date_out", headerName: "Date Out", width: 150 },
+    { field: "date_out", headerName: "Date Out", width: 150 },
     {
       field: "actions",
       headerName: "Actions",
@@ -61,18 +62,18 @@ const OrderStoreListPage = () => {
     },
   ];
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get(`${SERVER_URL}/retrieve/all_orders`);
       setOrders(response.data);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
-  };
+  }, [SERVER_URL, setOrders]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleOpenImportDialog = () => {
     setImportDialogOpen(true);
@@ -161,7 +162,7 @@ const OrderStoreListPage = () => {
   };
 
   return (
-    <div style={{ height: "85vh", width: "100%" }}>
+    <div style={{ margin: "10px" }}>
       <Box sx={{ mb: 2 }}>
         <Button
           variant="contained"
@@ -224,21 +225,24 @@ const OrderStoreListPage = () => {
         </Alert>
       </Snackbar>
 
-      <DataGrid
-        rows={orders}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 15,
+      <Paper sx={{ height: "85vh", padding: "10px" }}>
+        <DataGrid
+          rows={orders}
+          columns={columns}
+          sx={{ borderColor: "#192832" }}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 15,
+              },
             },
-          },
-        }}
-        pageSizeOptions={[15, 25, 50]}
-        components={{
-          Toolbar: CustomToolbar,
-        }}
-      />
+          }}
+          pageSizeOptions={[15, 25, 50]}
+          components={{
+            Toolbar: CustomToolbar,
+          }}
+        />
+      </Paper>
     </div>
   );
 };
@@ -246,9 +250,9 @@ const OrderStoreListPage = () => {
 const CustomToolbar = () => {
   return (
     <GridToolbarContainer>
-      <GridToolbarColumnsButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
+      <GridToolbarColumnsButton color="secondary" />
+      <GridToolbarDensitySelector color="secondary" />
+      <GridToolbarExport color="secondary" />
     </GridToolbarContainer>
   );
 };

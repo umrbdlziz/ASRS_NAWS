@@ -13,11 +13,13 @@ import {
   DialogActions,
   Button,
   TextField,
-  MenuItem, // Import MenuItem for the select input
+  MenuItem,
   IconButton,
   DialogContentText,
   Snackbar,
   Alert,
+  Paper,
+  Box,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
@@ -148,19 +150,30 @@ const UserPage = () => {
   }, []);
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
-      <Button variant="contained" color="primary" onClick={handleAddUser}>
-        Add User
-      </Button>
-      <DataGrid
-        rows={users}
-        columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5, 10, 20]}
-        components={{
-          Toolbar: CustomToolbar,
-        }}
-      />
+    <div style={{ margin: "10px" }}>
+      <Box mb={2}>
+        <Button variant="contained" color="primary" onClick={handleAddUser}>
+          Add User
+        </Button>
+      </Box>
+      <Paper sx={{ height: "85vh", padding: "10px" }}>
+        <DataGrid
+          rows={users}
+          columns={columns}
+          sx={{ borderColor: "#192832" }}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 15,
+              },
+            },
+          }}
+          rowsPerPageOptions={[15, 20, 50]}
+          components={{
+            Toolbar: CustomToolbar,
+          }}
+        />
+      </Paper>
 
       {/* Dialog for adding new user */}
       <Dialog open={openNewUser} onClose={handleCloseNewUser}>
@@ -277,9 +290,9 @@ const UserPage = () => {
 const CustomToolbar = () => {
   return (
     <GridToolbarContainer>
-      <GridToolbarColumnsButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
+      <GridToolbarColumnsButton color="secondary" />
+      <GridToolbarDensitySelector color="secondary" />
+      <GridToolbarExport color="secondary" />
     </GridToolbarContainer>
   );
 };

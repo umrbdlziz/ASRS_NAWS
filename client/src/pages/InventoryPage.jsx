@@ -8,6 +8,7 @@ import {
   Box,
   IconButton,
   TextField,
+  Paper,
 } from "@mui/material";
 import {
   DataGrid,
@@ -59,7 +60,7 @@ const InventoryPage = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 150,
       renderCell: (params) => (
         <>
           <IconButton
@@ -231,7 +232,7 @@ const InventoryPage = () => {
   };
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ margin: "10px" }}>
       {isLoading ? (
         <LoadingSpinner text="IF THE FILE IS LARGE NEED MORE TIME TO UPLOAD" />
       ) : (
@@ -263,23 +264,30 @@ const InventoryPage = () => {
             </Button>
           </Box>
 
-          <DataGrid
-            rows={inventory}
-            columns={columns}
-            getRowId={(row) => row.item_code}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 15,
+          <Paper
+            sx={{
+              padding: "10px",
+              height: "85vh",
+            }}
+          >
+            <DataGrid
+              rows={inventory}
+              columns={columns}
+              getRowId={(row) => row.item_code}
+              sx={{ borderColor: "#192832" }}
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: 15,
+                  },
                 },
-              },
-            }}
-            pageSizeOptions={[15, 25, 50]}
-            components={{
-              Toolbar: CustomToolbar,
-            }}
-          />
-
+              }}
+              pageSizeOptions={[15, 25, 50]}
+              components={{
+                Toolbar: CustomToolbar,
+              }}
+            />
+          </Paper>
           {/* Dialog for import Inventory */}
           <Dialog open={importDialogOpen} onClose={handleCloseImportDialog}>
             <DialogTitle>Import Inventory</DialogTitle>
@@ -378,9 +386,9 @@ const InventoryPage = () => {
 const CustomToolbar = () => {
   return (
     <GridToolbarContainer>
-      <GridToolbarColumnsButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
+      <GridToolbarColumnsButton color="secondary" />
+      <GridToolbarDensitySelector color="secondary" />
+      <GridToolbarExport color="secondary" />
     </GridToolbarContainer>
   );
 };

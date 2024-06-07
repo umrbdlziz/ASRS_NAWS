@@ -17,6 +17,7 @@ import {
   Alert,
   Snackbar,
   IconButton,
+  Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
@@ -146,7 +147,7 @@ const StoreListPage = () => {
     }
   };
   return (
-    <div style={{ height: "85vh", width: "100%" }}>
+    <div style={{ margin: "10px" }}>
       <Box sx={{ mb: 2 }}>
         <Button
           variant="contained"
@@ -217,21 +218,24 @@ const StoreListPage = () => {
         </Alert>
       </Snackbar>
 
-      <DataGrid
-        rows={orders}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 15,
+      <Paper sx={{ height: "85vh", padding: "10px" }}>
+        <DataGrid
+          rows={orders}
+          columns={columns}
+          sx={{ borderColor: "#192832" }}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 15,
+              },
             },
-          },
-        }}
-        pageSizeOptions={[15, 25, 50]}
-        components={{
-          Toolbar: CustomToolbar,
-        }}
-      />
+          }}
+          pageSizeOptions={[15, 25, 50]}
+          components={{
+            Toolbar: CustomToolbar,
+          }}
+        />
+      </Paper>
     </div>
   );
 };
@@ -239,9 +243,9 @@ const StoreListPage = () => {
 const CustomToolbar = () => {
   return (
     <GridToolbarContainer>
-      <GridToolbarColumnsButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
+      <GridToolbarColumnsButton color="secondary" />
+      <GridToolbarDensitySelector color="secondary" />
+      <GridToolbarExport color="secondary" />
     </GridToolbarContainer>
   );
 };

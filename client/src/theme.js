@@ -13,7 +13,6 @@ const theme = createTheme({
     },
     background: {
       default: "#2D465A", // Change this to your desired background color
-      contrastText: "#EFF1ED",
       paper: "#192832",
     },
     text: {
