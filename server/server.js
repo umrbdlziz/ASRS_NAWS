@@ -126,6 +126,7 @@ app.get("/checkAuth", (req, res) => {
   }
 });
 
+const home_api = require("./API/home");
 const users_api = require("./API/user");
 const retrieve_api = require("./API/retrieve");
 const store_api = require("./API/store");
@@ -135,6 +136,7 @@ const { app: fleet_api } = require("./API/fleet");
 const { app: item_api } = require("./API/item");
 const { app: warehouse_api } = require("./API/warehouse");
 
+app.use("/home", home_api);
 app.use("/user", users_api);
 app.use("/retrieve", retrieve_api);
 app.use("/store", store_api);

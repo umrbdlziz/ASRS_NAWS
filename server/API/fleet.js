@@ -158,3 +158,24 @@ async function executeRobot(data_send) {
 }
 
 module.exports = { app, fleet, fleetAbort };
+
+/*
+tasks/dispatch_task
+{
+  "unix_millis_earliest_start_time": 0,
+  "unix_millis_request_time": 1715315298891,
+  "priority": {
+    "type": "binary",
+    "value": 0
+  },
+  "category": "patrol",
+  "description": {
+    "places": [
+      "patrol_D2"
+    ],
+    "rounds": 1
+  },
+  "labels": null,
+  "requester": "stub"
+}
+*/

@@ -1,24 +1,39 @@
-import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../components/authService";
-import { AuthContext } from "../context";
+import { Grid, Box, Hidden } from "@mui/material";
+import {
+  RetrieveMonthly,
+  StoreMonthly,
+  TotalItem,
+  UserPerformance,
+  RobotRuntime,
+  RobotInfo,
+} from "../components/home";
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const { setIsAuthenticated } = useContext(AuthContext);
-
-  const handleLogout = async () => {
-    console.log("Logging out");
-    await logout();
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
-
   return (
-    <div>
-      <h1>Welcome to the ASRS Home Page</h1>
-      <button onClick={handleLogout}>Logout</button>
-    </div>
+    <Box sx={{ margin: "10px" }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={12} lg={4}>
+          <TotalItem />
+        </Grid>
+        <Grid item xs={12} md={6} lg={4}>
+          <RetrieveMonthly />
+        </Grid>
+        <Grid item xs={12} md={6} lg={4}>
+          <StoreMonthly />
+        </Grid>
+        <Hidden lgDown>
+          <Grid item md={4}>
+            <UserPerformance />
+          </Grid>
+          <Grid item md={4}>
+            <RobotRuntime />
+          </Grid>
+          <Grid item md={4}>
+            <RobotInfo />
+          </Grid>
+        </Hidden>
+      </Grid>
+    </Box>
   );
 };
 export default HomePage;
