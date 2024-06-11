@@ -150,12 +150,12 @@ const TopBar = () => {
               </ListItemIcon>
               <ListItemText primary="Station" />
             </ListItem>
-            <ListItem button onClick={() => handleUserClick("/map")}>
+            {/* <ListItem button onClick={() => handleUserClick("/map")}>
               <ListItemIcon>
                 <MapIcon style={{ color: "#EFF1ED" }} />
               </ListItemIcon>
               <ListItemText primary="Live Map" />
-            </ListItem>
+            </ListItem> */}
             <ListItem button onClick={() => handleUserClick("/inventory")}>
               <ListItemIcon>
                 <InventoryIcon style={{ color: "#EFF1ED" }} />
@@ -195,12 +195,6 @@ const TopBar = () => {
             </ListItemButton>
             <Collapse in={open} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                <ListItemButton
-                  onClick={() => handleUserClick("/info")}
-                  sx={{ pl: 4 }}
-                >
-                  <ListItemText primary="Information" />
-                </ListItemButton>
                 <ListItemButton
                   onClick={() => handleUserClick("/user")}
                   sx={{ pl: 4 }}

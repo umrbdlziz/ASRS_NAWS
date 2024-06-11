@@ -7,7 +7,6 @@ import StationPage from "./StationPage";
 import StoreListPage from "./StoreListPage";
 import MapPage from "./MapPage";
 import Warehouse from "./Warehouse";
-import Info from "./Info";
 import EditPatternPage from "./EditPatternPage";
 
 export {
@@ -20,6 +19,5 @@ export {
   StoreListPage,
   MapPage,
   Warehouse,
-  Info,
   EditPatternPage,
 };

@@ -12,16 +12,16 @@ const HomePage = () => {
   return (
     <Box sx={{ margin: "10px" }}>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={12} lg={4}>
+        <Grid item xs={12} md={12} lg={12} xl={4}>
           <TotalItem />
         </Grid>
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid item xs={12} md={6} lg={6} xl={4}>
           <RetrieveMonthly />
         </Grid>
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid item xs={12} md={6} lg={6} xl={4}>
           <StoreMonthly />
         </Grid>
-        <Hidden lgDown>
+        <Hidden xlDown>
           <Grid item md={4}>
             <UserPerformance />
           </Grid>

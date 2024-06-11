@@ -152,11 +152,11 @@ const UserPage = () => {
   return (
     <div style={{ margin: "10px" }}>
       <Box mb={2}>
-        <Button variant="contained" color="primary" onClick={handleAddUser}>
+        <Button variant="contained" color="info" onClick={handleAddUser}>
           Add User
         </Button>
       </Box>
-      <Paper sx={{ height: "85vh", padding: "10px" }}>
+      <Paper sx={{ height: "80vh", padding: "10px" }}>
         <DataGrid
           rows={users}
           columns={columns}

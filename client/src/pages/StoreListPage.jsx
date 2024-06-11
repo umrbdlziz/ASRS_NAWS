@@ -26,7 +26,6 @@ import { ServerContext } from "../context";
 const StoreListPage = () => {
   const [orders, setOrders] = useState([]);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [alertImport, setAlertImport] = useState(false);
   const [deleteAlertOrder, setDeleteAlertOrder] = useState(false);
@@ -72,21 +71,9 @@ const StoreListPage = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleOpenImportDialog = () => {
-    setImportDialogOpen(true);
-  };
-
   const handleCloseImportDialog = () => {
     setImportDialogOpen(false);
     setSelectedFile(null);
-  };
-
-  const handleOpenCreateDialog = () => {
-    setCreateDialogOpen(true);
-  };
-
-  const handleCloseCreateDialog = () => {
-    setCreateDialogOpen(false);
   };
 
   const handleFileChange = (event) => {
@@ -151,18 +138,11 @@ const StoreListPage = () => {
       <Box sx={{ mb: 2 }}>
         <Button
           variant="contained"
-          color="primary"
-          onClick={handleOpenImportDialog}
+          color="info"
+          onClick={() => setImportDialogOpen(true)}
           sx={{ mr: 2 }}
         >
-          Import Order
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenCreateDialog}
-        >
-          Create Order
+          Upload Store list
         </Button>
       </Box>
 
@@ -180,12 +160,6 @@ const StoreListPage = () => {
             Done
           </Button>
         </DialogActions>
-      </Dialog>
-
-      {/* Dialog for create order */}
-      <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
-        <DialogTitle>Create Order</DialogTitle>
-        {/* Add your create order form here */}
       </Dialog>
 
       <Snackbar

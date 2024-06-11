@@ -89,7 +89,6 @@ const Store = () => {
       const response = await axios.get(
         `${SERVER_URL}/store/get_store_data?store_no=${store_no}`
       );
-      console.log("Store data:", response.data);
       setStoreData(response.data);
       getListItem(store_no);
     } catch (error) {
@@ -139,7 +138,6 @@ const Store = () => {
           setScanItemCode("");
           return;
         }
-        console.log("Item info:", response.data);
         setGreenPigeonhole(
           response.data.pigeonhole.map((item) => item.pigeonhole_id)
         );

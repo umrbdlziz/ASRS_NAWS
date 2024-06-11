@@ -56,7 +56,7 @@ const InventoryPage = () => {
     { field: "item_code", headerName: "Item Code", width: 150, editable: true },
     { field: "item_desc", headerName: "Item Desc", width: 600, editable: true },
     { field: "quantity", headerName: "Qty", width: 100 },
-    { field: "item_img", headerName: "Image", width: 150, editable: true },
+    { field: "item_img", headerName: "Image", width: 180, editable: true },
     {
       field: "actions",
       headerName: "Actions",
@@ -240,15 +240,15 @@ const InventoryPage = () => {
           <Box sx={{ mb: 2 }}>
             <Button
               variant="contained"
-              color="primary"
+              color="info"
               onClick={handleOpenImportDialog}
               sx={{ mr: 2 }}
             >
-              Import Inventory
+              Upload Inventory
             </Button>
             <Button
               variant="contained"
-              color="primary"
+              color="info"
               onClick={() => setCreateDialogOpen(true)}
               sx={{ mr: 2 }}
             >
@@ -256,7 +256,7 @@ const InventoryPage = () => {
             </Button>
             <Button
               variant="contained"
-              color="primary"
+              color="info"
               onClick={() => setImgDialog(true)}
               sx={{ mr: 2 }}
             >
@@ -267,7 +267,7 @@ const InventoryPage = () => {
           <Paper
             sx={{
               padding: "10px",
-              height: "85vh",
+              height: "80vh",
             }}
           >
             <DataGrid

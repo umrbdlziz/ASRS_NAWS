@@ -37,7 +37,7 @@ const ListComponent = ({ storeList, handleActionClick }) => {
                     color="secondary"
                     onClick={() => handleActionClick(item.item_code)}
                   >
-                    Action
+                    Store
                   </Button>
                 </TableCell>
               </TableRow>

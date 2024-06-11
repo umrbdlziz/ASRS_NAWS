@@ -15,7 +15,6 @@ import {
   StoreListPage,
   MapPage,
   Warehouse,
-  Info,
   EditPatternPage,
 } from "./pages";
 import { checkAuth } from "./components/authService";
@@ -105,10 +104,6 @@ const App = () => {
                 element={
                   isAuthenticated ? <StoreListPage /> : <Navigate to="/login" />
                 }
-              />
-              <Route
-                path="/info"
-                element={isAuthenticated ? <Info /> : <Navigate to="/login" />}
               />
               <Route
                 path="/warehouse"

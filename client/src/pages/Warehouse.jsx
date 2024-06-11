@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from "react";
-import { Button, Grid } from "@mui/material";
+import { Button, Box } from "@mui/material";
+import Masonry from "@mui/lab/Masonry";
 import axios from "axios";
 
 import { ServerContext } from "../context";
@@ -189,51 +190,55 @@ const Warehouse = () => {
 
   return (
     <div style={{ margin: "20px" }}>
-      <Grid container spacing={2} style={{ marginTop: "16px" }}>
-        <Grid item xs={12} sm={6}>
-          <Pattern patterns={patterns} handleDeleteBtn={handleDeleteBtn} />
+      <Masonry columns={{ xs: 1, lg: 2 }} spacing={2}>
+        <Box display="flex" flexDirection="column" paddingY={3}>
           <Button
             variant="contained"
-            color="primary"
+            color="info"
             onClick={() => handleOnClick("pattern")}
+            sx={{ margin: "8px" }}
           >
             Add new Pattern
           </Button>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Rack racks={racks} handleDeleteBtn={handleDeleteBtn} />
+          <Pattern patterns={patterns} handleDeleteBtn={handleDeleteBtn} />
+        </Box>
+        <Box display="flex" flexDirection="column" paddingY={3}>
           <Button
             variant="contained"
-            color="primary"
+            color="info"
+            onClick={() => handleOnClick("bin")}
+            sx={{ margin: "8px" }}
+          >
+            Add new Bin
+          </Button>
+          <Bin bins={bins} handleDeleteBtn={handleDeleteBtn} />
+        </Box>
+        <Box display="flex" flexDirection="column" paddingY={3}>
+          <Button
+            variant="contained"
+            color="info"
             onClick={() => handleOnClick("rack")}
+            sx={{ margin: "8px" }}
           >
             Add new Rack
           </Button>
-        </Grid>
-        <Grid item xs={12} sm={6}>
+          <Rack racks={racks} handleDeleteBtn={handleDeleteBtn} />
+        </Box>
+        <Box display="flex" flexDirection="column" paddingY={3}>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => handleOnClick("retrieveRack")}
+            sx={{ margin: "8px" }}
+          >
+            Add new Retrieve Rack
+          </Button>
           <RetrieveRack
             retrieveRacks={retrieveRacks}
             handleDeleteBtn={handleDeleteBtn}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleOnClick("retrieveRack")}
-          >
-            Add new Retrieve Rack
-          </Button>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Bin bins={bins} handleDeleteBtn={handleDeleteBtn} />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleOnClick("bin")}
-          >
-            Add new Bin
-          </Button>
-        </Grid>
-      </Grid>
+        </Box>
+      </Masonry>
 
       <AddDialog
         type={type}
