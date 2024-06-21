@@ -19,37 +19,30 @@ const io = socketIo(server, {
 const clientIO = require("socket.io-client");
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
   const api_url = "192.168.1.48";
   try {
-    // Assuming you have already established a connection to the Socket.io server
     const socket = clientIO(`http://${api_url}:8000`);
 
     // Function to subscribe to a room
     function subscribeToRoom(roomName) {
-      console.log("Subscribing to room");
-      // Send a message to the 'subscribe' room with the desired room name
+      // console.log("Subscribing to room");
       socket.emit("subscribe", { room: roomName });
     }
 
     // Function to handle incoming messages from the subscribed room
     function handleRobotState(message) {
       // console.log("Received message:", message);
-      // Emit the message to your Socket.IO server
       io.emit("tinyRobot_state", message);
     }
 
-    // Subscribe to a specific room
     subscribeToRoom("/fleets/tinyRobot/state");
-
-    // Listen for messages on that room
     socket.on("/fleets/tinyRobot/state", handleRobotState);
   } catch (err) {
     console.log(err);
   }
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    // console.log("Client disconnected");
   });
 });
 
@@ -123,6 +116,19 @@ app.get("/checkAuth", (req, res) => {
     res.send({ authenticated: true });
   } else {
     res.send({ authenticated: false });
+  }
+});
+
+// endpoint to retrieve data from digital picking system
+app.post("/light", async (req, res) => {
+  console.log("Light command received:", req.body);
+
+  try {
+    res.send({ Result: 1, Message: "Command received successfully!" });
+
+    io.emit("lightCommand", req.body); // Emit the received data to all connected Socket.IO clients
+  } catch (error) {
+    console.log("Error changing light:", error.message);
   }
 });
 

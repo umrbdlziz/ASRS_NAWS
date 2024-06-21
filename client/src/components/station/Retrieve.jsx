@@ -1,5 +1,7 @@
 import { useState, useContext, useRef, useEffect } from "react";
 import { Button, Box } from "@mui/material";
+import io from "socket.io-client";
+
 import { ServerContext, StationContext, AuthContext } from "../../context";
 import Layout from "../Layout";
 import ItemDetails from "../ItemDetails";
@@ -56,6 +58,42 @@ const Retrieve = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputOne, pigeonhole, bin]);
 
+  // useEffect to read the light command from the server
+  useEffect(() => {
+    const handleSecondScan2 = async (locationId) => {
+      if (locationId != greenBin.bin_id) {
+        setDialogMessage({
+          title: "Error",
+          content: `Wrong bin(${locationId})`,
+        });
+        setDialogOpen(true);
+      } else {
+        try {
+          await axios.post(`${SERVER_URL}/retrieve/update_retrieve`, {
+            dataSend: dataSend,
+            so_number: soNumber,
+            pigeonholeId: pigeonhole,
+            userId: userInfo.id,
+          });
+
+          handleSuccess();
+        } catch (error) {
+          console.error("Error getting item:", error);
+          setBin("");
+        }
+      }
+    };
+    const socket = io(SERVER_URL);
+
+    socket.on("lightCommand", (data) => {
+      if (data.LocationId && greenBin.bin_id) {
+        console.log("Light command received:", data);
+        setBin(data.LocationId);
+        handleSecondScan2(data.LocationId);
+      }
+    });
+  });
+
   const handleStart = async () => {
     if (currentStation === "") {
       alert("Please select a station");
@@ -63,7 +101,7 @@ const Retrieve = () => {
     } else {
       try {
         const response = await axios.get(
-          `${SERVER_URL}/retrieve/get_retrieve?station_id=${currentStation[0].station_id}&user=${userInfo.id}`
+          `${SERVER_URL}/retrieve/get_retrieve?station_id=${currentStation[0].station_id}`
         );
 
         if (response.data.message === "No item in pigeonhole") {
@@ -131,6 +169,7 @@ const Retrieve = () => {
   };
 
   const handleFirstScan = async (event) => {
+    let totalQuantity = 0;
     if (event.key === "Enter") {
       console.log("Pigeonhole:", pigeonhole, greenPigeonhole);
       if (!greenPigeonhole.includes(pigeonhole)) {
@@ -151,6 +190,10 @@ const Retrieve = () => {
 
         setItemData(response.data.items);
         secondScanRef.current.focus();
+        totalQuantity = response.data.items.reduce(
+          (total, item) => total + item.item_quantity,
+          0
+        );
       } catch (error) {
         console.error("Error getting item:", error);
         setPigeonhole("");
@@ -162,6 +205,29 @@ const Retrieve = () => {
         );
         setGreenBin(response.data);
         setIsInputOne(false);
+
+        axios.post("http://192.168.1.48:9090/api/Light/PostInfo/", {
+          Details: [
+            {
+              LocationId: response.data.bin_id,
+              LightColor: 64,
+              Twinkle: 0,
+              IsLocked: 0,
+              IsMustCollect: 1,
+              Quantity: totalQuantity,
+              SubText: "11",
+              BatchCode: "BatchCode",
+              Name: "Name",
+              R1: "No. One Line",
+              R2: "Second Line",
+              R3: "Third Line",
+              SubTitle: "SubTitle",
+              Title: "Main Title",
+              Unit: "Unit",
+              RelateToTower: false,
+            },
+          ],
+        });
       } catch (error) {
         console.log("Error getting bin:", error);
         setPigeonhole("");
@@ -189,6 +255,7 @@ const Retrieve = () => {
             dataSend: dataSend,
             so_number: soNumber,
             pigeonholeId: pigeonhole,
+            userId: userInfo.id,
           });
 
           handleSuccess();
@@ -221,9 +288,6 @@ const Retrieve = () => {
 
     setItemData(null);
 
-    setDialogMessage({});
-    setDialogOpen(true);
-
     setIsInputOne(true);
     setBin("");
     setPigeonhole("");
@@ -234,27 +298,24 @@ const Retrieve = () => {
     secondScanRef.current.focus();
   };
 
-  const handleNext = () => {
-    // Logic for the Next button
-    console.log("Next button clicked");
-  };
-
-  const handleComplete = () => {
-    // Logic for the Complete button
-    console.log("Complete button clicked");
-  };
-
   return (
     <>
       {isBtnStartDisplay && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleStart}
-          style={{ height: "56px" }}
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="70vh"
         >
-          Start
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleStart}
+            style={{ height: "56px" }}
+          >
+            Start
+          </Button>
+        </Box>
       )}
       <Box display="flex" justifyContent="space-between" marginX={2}>
         <>
@@ -297,25 +358,6 @@ const Retrieve = () => {
         onKeyDown={handleSecondScan}
         style={{ display: "none" }}
       />
-      <Box
-        display="flex"
-        justifyContent="flex-end"
-        position="fixed"
-        bottom={16}
-        right={16}
-      >
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleNext}
-          style={{ marginRight: 16 }}
-        >
-          Next
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleComplete}>
-          Complete
-        </Button>
-      </Box>
       {dialogMessage.title == "Success" ? (
         <CustomSnackbar
           open={dialogOpen}

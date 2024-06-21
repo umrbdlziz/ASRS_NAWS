@@ -92,7 +92,7 @@ app.delete("/delete_order/:id", async (req, res) => {
 
 // for station page
 app.get("/get_retrieve", async (req, res) => {
-  const { station_id, user } = req.query;
+  const { station_id } = req.query;
   let pigeonhole = {};
   let emptyPigeonhole = true;
   let layout = {};
@@ -184,12 +184,14 @@ app.post("/get_item", async (req, res) => {
 
       for (let itemCode of itemCodeResult) {
         if (itemCodes.includes(itemCode.item_code)) {
-          const itemImgSQL = "SELECT * FROM item WHERE item_code = ?";
-          const itemImgResult = await db.executeGetSQL(itemImgSQL, [
+          // Modified SQL to join `item` and `retrieve` tables to get item details and quantity
+          const itemDetailsSQL = `SELECT item.*, retrieve.item_quantity FROM item JOIN retrieve ON item.item_code = retrieve.item_code WHERE item.item_code = ?`;
+
+          const itemDetailsResult = await db.executeGetSQL(itemDetailsSQL, [
             itemCode.item_code,
           ]);
 
-          itemArray.push(itemImgResult);
+          itemArray.push(itemDetailsResult);
         }
       }
 
@@ -233,7 +235,7 @@ app.get("/get_bin", async (req, res) => {
 });
 
 app.post("/update_retrieve", async (req, res) => {
-  const { dataSend, so_number, pigeonholeId } = req.body;
+  const { dataSend, so_number, pigeonholeId, userId } = req.body;
 
   try {
     for (let data of dataSend) {
@@ -264,16 +266,18 @@ app.post("/update_retrieve", async (req, res) => {
 
           // Update the pigeonhole table with the new item_code list
           const updatePigeonholeSQL =
-            "UPDATE pigeonhole SET item_code = ? WHERE pigeonhole_id = ?";
+            "UPDATE pigeonhole SET item_code = ?, date = datetime('now'), user_id = ? WHERE pigeonhole_id = ?";
           await db.executeRunSQL(updatePigeonholeSQL, [
             updatedItemCodeList,
+            userId,
             pigeonholeId,
           ]);
 
           // Update the retrieve table
           const updateRetrieveSQL =
-            "UPDATE retrieve SET status = true, datetime_retrieve = datetime('now') WHERE item_code = ? AND so_no = ?";
+            "UPDATE retrieve SET status = true, datetime_retrieve = datetime('now'), user_id = ?  WHERE item_code = ? AND so_no = ?";
           await db.executeRunSQL(updateRetrieveSQL, [
+            userId,
             retrieveResult.item_code,
             so_number,
           ]);

@@ -20,10 +20,11 @@ const ItemDetails = ({ itemData, onQuantitiesChange }) => {
     const initialQuantities = itemData
       ? itemData.map((item) => ({
           item_code: item.item_code,
-          quantity: item.quantity || 0,
+          quantity: item.item_quantity,
         }))
       : [];
     setQuantities(initialQuantities);
+    onQuantitiesChange(initialQuantities);
   }, [itemData]);
 
   const handleIncrement = (index) => {
@@ -91,7 +92,7 @@ const ItemDetails = ({ itemData, onQuantitiesChange }) => {
                   <Remove />
                 </IconButton>
                 <Typography variant="body1">
-                  {quantities[index]?.quantity || 0}
+                  {quantities[index]?.quantity}
                 </Typography>
                 <IconButton onClick={() => handleIncrement(index)}>
                   <Add />
