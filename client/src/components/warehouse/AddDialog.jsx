@@ -22,6 +22,7 @@ const AddDialog = ({
   patterns,
   soNO,
   station,
+  retrieveRacks,
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -110,6 +111,71 @@ const AddDialog = ({
             />
           </>
         )}
+        {type === "station" && (
+          <>
+            <TextField
+              select
+              margin="dense"
+              label="Station Type"
+              type="text"
+              fullWidth
+              value={value.type}
+              onChange={(e) => setValue({ ...value, type: e.target.value })}
+            >
+              <MenuItem value="pigeonhole">Pigeonhole</MenuItem>
+            </TextField>
+            <TextField
+              select
+              margin="dense"
+              label="Retrieve Rack ID"
+              type="text"
+              fullWidth
+              value={value.retrieve_rack_id}
+              onChange={(e) =>
+                setValue({ ...value, retrieve_rack_id: e.target.value })
+              }
+            >
+              {retrieveRacks.map((rack) => (
+                <MenuItem
+                  key={rack.retrieve_rack_id}
+                  value={rack.retrieve_rack_id}
+                >
+                  {rack.retrieve_rack_id}
+                </MenuItem>
+              ))}
+            </TextField>
+            <div style={{ display: "flex", gap: "15px" }}>
+              <TextField
+                type="number"
+                margin="dense"
+                label="X"
+                value={value.x}
+                onChange={(e) => setValue({ ...value, x: e.target.value })}
+              />
+              <TextField
+                type="number"
+                margin="dense"
+                label="Y"
+                value={value.y}
+                onChange={(e) => setValue({ ...value, y: e.target.value })}
+              />
+              <TextField
+                type="number"
+                margin="dense"
+                label="Z"
+                value={value.z}
+                onChange={(e) => setValue({ ...value, z: e.target.value })}
+              />
+              <TextField
+                type="number"
+                margin="dense"
+                label="Yaw"
+                value={value.yaw}
+                onChange={(e) => setValue({ ...value, yaw: e.target.value })}
+              />
+            </div>
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="secondary">
@@ -135,6 +201,7 @@ AddDialog.propTypes = {
   patterns: PropTypes.array,
   soNO: PropTypes.array,
   station: PropTypes.array,
+  retrieveRacks: PropTypes.array,
 };
 
 export default AddDialog;

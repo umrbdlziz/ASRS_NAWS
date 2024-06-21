@@ -73,7 +73,7 @@ Start the server
 
 ## Usage
 
-Step in this section assume that server is running.
+### Step in this section assume that server is running.
 
 1. Open localhost:\<PORT\>, where PORT is determine in `.env` file.
 2. Login as admin using `username` & `password` from `.env` file.
@@ -89,3 +89,11 @@ Step in this section assume that server is running.
 12. Add new rack and choose the pattern that have been created.
 13. Add bin and retrieve rack to place the item that we received.
 14. (Optional) To add new admin, click on `User` and register a new admin there. Admin of username "admin" will be hidden.
+
+### Retrieve item
+
+1. Press start button (make sure the switch at the retrieve) then pigeonhole and retrieve rack will be display
+2. Scan the green pigeonhole then the item description and the position to put the item in the retrieve rack will be available.
+3. Increase or decrease the quantity for the item as needed.
+4. [1] Scan the barcode of the bin in the retrieve rack
+5. [2] Press the button at the retrieve rack

@@ -11,6 +11,7 @@ import {
   Bin,
   RetrieveRack,
   AddDialog,
+  Station,
 } from "../components/warehouse";
 
 const Warehouse = () => {
@@ -28,6 +29,12 @@ const Warehouse = () => {
     position: "",
     soNo: "",
     station: "",
+    type: "",
+    retrieve_rack_id: "",
+    x: 0,
+    y: 0,
+    z: 0,
+    yaw: 0,
   });
   const [dialogMessage, setDialogMessage] = useState({
     title: "",
@@ -107,6 +114,13 @@ const Warehouse = () => {
           content: "Please input unique retrieve bin name",
         });
         break;
+      case "station":
+        setOpenDialog(true);
+        setDialogMessage({
+          title: "Add new Station",
+          content: "Please input unique station name",
+        });
+        break;
       default:
         break;
     }
@@ -137,6 +151,16 @@ const Warehouse = () => {
         position: newValue.position,
         station: newValue.station,
       };
+    } else if (type === "station") {
+      data = {
+        station_id: newValue.id,
+        x: newValue.x,
+        y: newValue.y,
+        z: newValue.z,
+        yaw: newValue.yaw,
+        type: newValue.type,
+        retrieve_rack_id: newValue.retrieve_rack_id,
+      };
     }
 
     // Save the pattern to the database
@@ -159,6 +183,12 @@ const Warehouse = () => {
         position: "",
         soNo: "",
         station: "",
+        type: "",
+        retrieve_rack_id: "",
+        x: 0,
+        y: 0,
+        z: 0,
+        yaw: 0,
       });
       setPatterns([]);
     } catch (error) {
@@ -238,6 +268,17 @@ const Warehouse = () => {
             handleDeleteBtn={handleDeleteBtn}
           />
         </Box>
+        <Box display="flex" flexDirection="column" paddingY={3}>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => handleOnClick("station")}
+            sx={{ margin: "8px" }}
+          >
+            Add new Station
+          </Button>
+          <Station stations={station} handleDeleteBtn={handleDeleteBtn} />
+        </Box>
       </Masonry>
 
       <AddDialog
@@ -252,6 +293,7 @@ const Warehouse = () => {
         patterns={patterns}
         soNO={soNo}
         station={station}
+        retrieveRacks={retrieveRacks}
       />
 
       <CustomeSnackbar

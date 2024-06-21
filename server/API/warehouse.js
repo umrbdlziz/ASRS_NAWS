@@ -201,6 +201,39 @@ app.delete("/delete_bin", async (req, res) => {
   }
 });
 
+app.delete("/delete_station", async (req, res) => {
+  const { id } = req.body;
+  try {
+    const deleteSQL = "DELETE FROM station WHERE station_id = ?";
+    const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
+    res.send(deleteResult);
+  } catch (error) {
+    console.log("Error in /delete_station:", error);
+  }
+});
+
+app.post("/add_station", async (req, res) => {
+  const { station_id, type, retrieve_rack_id, x, y, z, yaw } = req.body;
+
+  try {
+    const insertOrUpdateSQL =
+      "INSERT OR REPLACE INTO station (station_id, x, y, z, yaw, type, is_available, retrieve_rack_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    const result = await db.executeRunSQL(insertOrUpdateSQL, [
+      station_id,
+      x,
+      y,
+      z,
+      yaw,
+      type,
+      1,
+      retrieve_rack_id,
+    ]);
+    res.send(result);
+  } catch (error) {
+    console.log("Error in /add_station:", error);
+  }
+});
+
 app.post("/add_pattern", async (req, res) => {
   const { pattern_id, pattern } = req.body;
 
