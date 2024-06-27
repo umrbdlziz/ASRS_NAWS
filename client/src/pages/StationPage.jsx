@@ -1,13 +1,22 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Typography, Switch, Box } from "@mui/material";
 import { StationContext } from "../context";
 
 import { Store, Retrieve } from "../components";
 
 const StationPage = () => {
-  const [isRetrieve, setIsRetrieve] = useState(true);
+  // Initialize state based on localStorage value or default to true
+  const [isRetrieve, setIsRetrieve] = useState(() => {
+    const storedIsRetrieve = localStorage.getItem("isRetrieve");
+    return storedIsRetrieve !== null ? JSON.parse(storedIsRetrieve) : true;
+  });
 
   const { currentStation } = useContext(StationContext);
+
+  useEffect(() => {
+    // Update localStorage whenever isRetrieve changes
+    localStorage.setItem("isRetrieve", JSON.stringify(isRetrieve));
+  }, [isRetrieve]);
 
   if (!currentStation) {
     console.log("Please select a station first");
@@ -31,7 +40,7 @@ const StationPage = () => {
         <Switch
           checked={isRetrieve}
           onChange={handleSwitchChange}
-          color="primary"
+          color="info"
         />
         <Typography variant="subtitle1" marginLeft={1}>
           Retrieve

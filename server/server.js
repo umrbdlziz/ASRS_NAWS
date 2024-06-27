@@ -147,7 +147,7 @@ app.use("/retrieve", retrieve_api);
 app.use("/store", store_api);
 app.use("/setting", setting_api);
 app.use("/map", map_api);
-app.use("/fleet", fleet_api);
+app.use("/api", fleet_api);
 app.use("/item", item_api);
 app.use("/warehouse", warehouse_api);
 

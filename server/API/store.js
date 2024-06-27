@@ -111,7 +111,7 @@ app.get("/get_store_data", async (req, res) => {
 
   try {
     const { leastItemsRack, leastItemsSide } = await getLeastItemsRackAndSide();
-    fleet("come", leastItemsRack, leastItemsSide);
+    fleet("deliver", "stationA", leastItemsRack, leastItemsSide);
     const layout = await getRackLayout(leastItemsRack);
 
     res.send({ layout, leastItemsRack, leastItemsSide });

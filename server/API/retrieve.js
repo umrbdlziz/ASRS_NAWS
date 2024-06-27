@@ -127,7 +127,7 @@ app.get("/get_retrieve", async (req, res) => {
     for (let so in pigeonhole) {
       if (Object.keys(pigeonhole[so])[0]) {
         const [rack, side] = Object.keys(pigeonhole[so])[0].split("-");
-        fleet("retrieve", rack, side);
+        fleet("deliver", "stationA", rack, side);
         layout = await getRackLayout(rack);
         layout === "undefined" && (message = "Rack layout not found");
         break;

@@ -7,6 +7,7 @@ import {
   Container,
   Box,
   Alert,
+  Paper,
 } from "@mui/material";
 import { login } from "../components/authService";
 import { AuthContext, ServerContext } from "../context";
@@ -42,12 +43,16 @@ const LoginForm = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Box
+      <Paper
+        elevation={2}
         sx={{
-          marginTop: 8,
+          marginTop: "20vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          gap: 2,
+          padding: 2,
+          width: "500px",
         }}
       >
         <Typography component="h1" variant="h5">
@@ -80,7 +85,7 @@ const LoginForm = () => {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{ mt: 8, mb: 2 }}
           >
             Sign In
           </Button>
@@ -90,7 +95,7 @@ const LoginForm = () => {
             </Alert>
           )}
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 };

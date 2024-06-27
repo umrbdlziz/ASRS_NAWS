@@ -248,6 +248,22 @@ const Store = () => {
     }
   };
 
+  const handleCompleteBtn = async () => {
+    axios
+      .post(`${SERVER_URL}/api/fleet`, {
+        task_type: "return",
+        station: "stationA",
+        rack: storeData.leastItemsRack,
+        side: storeData.leastItemsSide,
+      })
+      .then(() => {
+        handleStartClick();
+      })
+      .catch((err) => {
+        console.error("Error in handleCompleteBtn:", err);
+      });
+  };
+
   return (
     <div>
       {displayStartButton && (
@@ -259,9 +275,9 @@ const Store = () => {
         >
           <Button
             variant="contained"
-            color="primary"
+            color="info"
             onClick={handleStartClick}
-            style={{ height: "56px" }}
+            style={{ padding: "10px 40px", fontWeight: "bold", fontSize: 15 }}
           >
             Start
           </Button>
@@ -316,19 +332,19 @@ const Store = () => {
       <Box
         display="flex"
         justifyContent="flex-end"
+        gap={2}
         position="fixed"
         bottom={16}
         right={16}
       >
+        <Button variant="outlined" color="secondary" onClick={handleNextBtn}>
+          Next
+        </Button>
         <Button
           variant="contained"
           color="secondary"
-          onClick={handleNextBtn}
-          style={{ marginRight: 16 }}
+          onClick={handleCompleteBtn}
         >
-          Next
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleStartClick}>
           Complete
         </Button>
       </Box>

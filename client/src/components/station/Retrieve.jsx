@@ -298,6 +298,19 @@ const Retrieve = () => {
     secondScanRef.current.focus();
   };
 
+  const handleNextBtn = async () => {
+    axios
+      .post(`${SERVER_URL}/api/fleet`, {
+        task_type: "return",
+        station: "stationA",
+        rack: currRack,
+        side: currSide,
+      })
+      .catch((err) => {
+        console.error("Error in handleCompleteBtn:", err);
+      });
+  };
+
   return (
     <>
       {isBtnStartDisplay && (
@@ -309,9 +322,9 @@ const Retrieve = () => {
         >
           <Button
             variant="contained"
-            color="primary"
+            color="info"
             onClick={handleStart}
-            style={{ height: "56px" }}
+            style={{ padding: "10px 40px", fontWeight: "bold", fontSize: 15 }}
           >
             Start
           </Button>
@@ -340,8 +353,29 @@ const Retrieve = () => {
               />
             </>
           )}
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            gap={2}
+            position="fixed"
+            bottom={16}
+            right={16}
+          >
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleNextBtn}
+            >
+              Next
+            </Button>
+            <Button variant="contained" color="secondary" onClick={handleStart}>
+              Complete
+            </Button>
+          </Box>
         </>
       </Box>
+
+      {/** hidden input for scanning pigeonhole and bin barcode */}
       <input
         ref={firstScanRef}
         value={pigeonhole}
@@ -358,6 +392,7 @@ const Retrieve = () => {
         onKeyDown={handleSecondScan}
         style={{ display: "none" }}
       />
+
       {dialogMessage.title == "Success" ? (
         <CustomSnackbar
           open={dialogOpen}

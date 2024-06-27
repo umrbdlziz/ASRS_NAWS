@@ -57,12 +57,7 @@ const App = () => {
           <Router>
             {location.pathname !== "/login" && <TopBar />}
             <Routes>
-              <Route
-                path="/login"
-                element={
-                  isAuthenticated ? <Navigate to="/home" /> : <LoginPage />
-                }
-              />
+              <Route path="/login" element={<LoginPage />} />
               <Route
                 path="/"
                 element={
