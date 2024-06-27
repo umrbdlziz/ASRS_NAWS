@@ -141,6 +141,7 @@ const Store = () => {
         setGreenPigeonhole(
           response.data.pigeonhole.map((item) => item.pigeonhole_id)
         );
+        console.log("Item info:", response.data);
         setItemData(response.data.itemInfo);
 
         setIsInputOne(false);
@@ -184,6 +185,7 @@ const Store = () => {
         });
 
         handleSuccess(response.data);
+        setGreenPigeonhole([]);
       } catch (error) {
         console.log("Error in pigeonhole input:", error);
         handleError();
@@ -249,9 +251,21 @@ const Store = () => {
   return (
     <div>
       {displayStartButton && (
-        <Button variant="contained" color="primary" onClick={handleStartClick}>
-          Start
-        </Button>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="70vh"
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleStartClick}
+            style={{ height: "56px" }}
+          >
+            Start
+          </Button>
+        </Box>
       )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>

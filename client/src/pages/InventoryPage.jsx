@@ -9,6 +9,7 @@ import {
   IconButton,
   TextField,
   Paper,
+  Typography,
 } from "@mui/material";
 import {
   DataGrid,
@@ -31,6 +32,8 @@ const InventoryPage = () => {
   const { SERVER_URL } = useContext(ServerContext);
 
   const [inventory, setInventory] = useState([]);
+  const [totalQty, setTotalQty] = useState(0);
+
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -84,6 +87,7 @@ const InventoryPage = () => {
     try {
       const response = await axios.get(`${SERVER_URL}/item/get_all_items`);
       setInventory(response.data);
+      setTotalQty(response.data.reduce((acc, item) => acc + item.quantity, 0));
     } catch (error) {
       console.error("Error fetching inventory:", error);
     }
@@ -229,6 +233,19 @@ const InventoryPage = () => {
     } catch (error) {
       console.error("Error creating item:", error);
     }
+  };
+
+  const CustomToolbar = () => {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton color="secondary" />
+        <GridToolbarDensitySelector color="secondary" />
+        <GridToolbarExport color="secondary" />
+        <Typography variant="body2" sx={{ flexGrow: 1 }} color="secondary">
+          {totalQty} Quantity
+        </Typography>
+      </GridToolbarContainer>
+    );
   };
 
   return (
@@ -380,16 +397,6 @@ const InventoryPage = () => {
         </>
       )}
     </div>
-  );
-};
-
-const CustomToolbar = () => {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarColumnsButton color="secondary" />
-      <GridToolbarDensitySelector color="secondary" />
-      <GridToolbarExport color="secondary" />
-    </GridToolbarContainer>
   );
 };
 

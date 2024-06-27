@@ -12,7 +12,7 @@ const LoadingSpinner = ({ text }) => {
         height: "100vh",
       }}
     >
-      <CircularProgress size={80} />
+      <CircularProgress size={80} color="secondary" />
       <Box sx={{ width: 500, margin: "10px" }}>
         <Typography variant="h6">{text}</Typography>
       </Box>

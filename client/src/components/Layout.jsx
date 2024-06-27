@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Box, Grid } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 
 const Layout = ({ data, currSide, currRack, greenPigeonhole }) => {
   let layout = data[currSide];
@@ -55,7 +55,19 @@ const Layout = ({ data, currSide, currRack, greenPigeonhole }) => {
       });
   };
 
-  return <div>{renderLevels()}</div>;
+  return (
+    <div>
+      <Box p={1} display="flex" gap={10}>
+        <Typography>
+          <strong>Current Rack:</strong> {currRack}
+        </Typography>
+        <Typography>
+          <strong>Current Side:</strong> {currSide}
+        </Typography>
+      </Box>
+      {renderLevels()}
+    </div>
+  );
 };
 
 Layout.propTypes = {

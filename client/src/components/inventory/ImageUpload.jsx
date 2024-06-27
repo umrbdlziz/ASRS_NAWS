@@ -108,6 +108,7 @@ const ImageUpload = ({ open, onClose }) => {
           <Button
             onClick={handleUpload}
             color="secondary"
+            variant="contained"
             disabled={!files.length}
           >
             Upload

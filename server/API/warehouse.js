@@ -173,6 +173,12 @@ app.delete("/delete_rack", async (req, res) => {
   try {
     const deleteSQL = "DELETE FROM rack WHERE rack_id = ?";
     const deleteResult = await db.executeRunSQL(deleteSQL, [id]);
+
+    // Remove all pigeonholes with the rack_id
+    const deletePigeonholesSQL =
+      "DELETE FROM pigeonhole WHERE pigeonhole_id LIKE ?";
+    await db.executeRunSQL(deletePigeonholesSQL, [`${id}-%`]);
+
     res.send(deleteResult);
   } catch (error) {
     console.log("Error in /delete_rack:", error);
@@ -253,6 +259,7 @@ app.post("/add_pattern", async (req, res) => {
 app.post("/add_rack", async (req, res) => {
   const { rack_id, pattern_id } = req.body;
   try {
+    // Insert or replace the rack entry
     const insertOrUpdateSQL =
       "INSERT OR REPLACE INTO rack (rack_id, pattern, x, y, z, yaw, is_available) VALUES (?, ?, ?, ?, ?, ?, ?)";
     const result = await db.executeRunSQL(insertOrUpdateSQL, [
@@ -264,9 +271,44 @@ app.post("/add_rack", async (req, res) => {
       0,
       1,
     ]);
+
+    // Retrieve the pattern
+    const getPatternSQL = "SELECT pattern FROM pattern WHERE pattern_id = ?";
+    const patternResult = await db.executeGetSQL(getPatternSQL, [pattern_id]);
+
+    if (!patternResult) {
+      throw new Error(`Pattern with pattern_id ${pattern_id} not found`);
+    }
+
+    const pattern = JSON.parse(patternResult.pattern);
+
+    // Remove existing pigeonholes with the same rack_id
+    const deletePigeonholesSQL =
+      "DELETE FROM pigeonhole WHERE pigeonhole_id LIKE ?";
+    await db.executeRunSQL(deletePigeonholesSQL, [`${rack_id}-%`]);
+
+    // Insert new pigeonholes based on the pattern
+    const insertPigeonholeSQL =
+      "INSERT INTO pigeonhole (pigeonhole_id) VALUES (?)";
+
+    for (const section in pattern) {
+      for (const level in pattern[section]) {
+        for (const column in pattern[section][level]) {
+          for (let j = 1; j <= column; j++) {
+            const quantity = pattern[section][level][column];
+            for (let i = 1; i <= quantity; i++) {
+              const pigeonhole_id = `${rack_id}-${section}-${level}-${j}-${i}`;
+              await db.executeRunSQL(insertPigeonholeSQL, [pigeonhole_id]);
+            }
+          }
+        }
+      }
+    }
+
     res.send(result);
   } catch (error) {
     console.log("Error in /add_rack:", error);
+    res.status(500).send("An error occurred while processing the request.");
   }
 });
 

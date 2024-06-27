@@ -12,16 +12,15 @@ const socketIo = require("socket.io");
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://192.168.1.48:5173", // Change this to your Vite development server port
+    origin: process.env.CLIENT_URL, // Change this to your Vite development server port
     credentials: true,
   },
 });
 const clientIO = require("socket.io-client");
 
 io.on("connection", (socket) => {
-  const api_url = "192.168.1.48";
   try {
-    const socket = clientIO(`http://${api_url}:8000`);
+    const socket = clientIO(process.env.RMF_URL);
 
     // Function to subscribe to a room
     function subscribeToRoom(roomName) {
@@ -78,7 +77,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(
   cors({
-    origin: "http://192.168.1.48:5173", // Change this to your Vite development server port
+    origin: process.env.CLIENT_URL, // Change this to your Vite development server port
     credentials: true,
   })
 );

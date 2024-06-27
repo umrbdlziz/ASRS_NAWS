@@ -37,6 +37,8 @@ Create a file named `.env` and include content below.
   DEFAULT_USERNAME=admin
   DEFAULT_PASSWORD=admin
   SECRET_KEY="Secret"
+  CLIENT_URL="http://192.168.1.48:5173"
+  RMF_URL="http://192.168.1.48:8000"
 ```
 
 Start the server

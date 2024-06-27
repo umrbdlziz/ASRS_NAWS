@@ -122,11 +122,11 @@ app.get("/get_store_data", async (req, res) => {
 
 app.get("/get_item_info", async (req, res) => {
   const { item_code, store_no } = req.query;
-  const message = "";
   const data = {};
 
   try {
-    const itemInfo = await getItemInfo(item_code);
+    const itemInfoSQL = `SELECT item.*, store.item_quantity FROM item JOIN store ON item.item_code = store.item_code WHERE item.item_code = ?`;
+    const itemInfo = await db.executeAllSQL(itemInfoSQL, [item_code]);
 
     const storeSQL =
       "SELECT item_code, item_quantity FROM store WHERE no = ? AND item_code = ?";

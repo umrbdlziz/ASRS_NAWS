@@ -86,6 +86,47 @@ app.get("/total_items", async (req, res) => {
   });
 });
 
+app.get("/items", async (req, res) => {
+  const { pigeonhole_id } = req.query;
+
+  try {
+    if (pigeonhole_id) {
+      // Fetch total items in the specified pigeonhole
+      const getTotalItemsSQL =
+        "SELECT item_code FROM pigeonhole WHERE pigeonhole_id = ?";
+      const result = await db.executeAllSQL(getTotalItemsSQL, [pigeonhole_id]);
+
+      if (result.length > 0 && result[0].item_code) {
+        // Check if item_code is not null
+        const totalItems = result[0].item_code.split(",").length;
+        const temp = result[0].item_code.split(",");
+        res.send({ pigeonhole_id, totalItems, temp });
+      } else {
+        res
+          .status(404)
+          .send({ message: "Pigeonhole not found or no items in pigeonhole" });
+      }
+    } else {
+      // Fetch total items in all pigeonholes
+      const getAllItemsSQL = "SELECT item_code FROM pigeonhole";
+      const results = await db.executeAllSQL(getAllItemsSQL);
+
+      let totalItems = 0;
+      results.forEach((row) => {
+        if (row.item_code) {
+          // Check if item_code is not null before splitting
+          totalItems += row.item_code.split(",").length;
+        }
+      });
+
+      res.send({ totalItems });
+    }
+  } catch (error) {
+    console.log("Error in /items:", error);
+    res.status(500).send("An error occurred while processing the request.");
+  }
+});
+
 app.get("/user_performance", async (req, res) => {
   try {
     const startOfWeek = new Date();
